@@ -1,0 +1,25 @@
+﻿{
+  "dependencies": {
+    "FormsToolkit": "1.1.14",
+    "Microsoft.NETCore.UniversalWindowsPlatform": "5.1.0",
+    "Newtonsoft.Json": "8.0.3",
+    "PCLStorage": "1.0.2",
+    "Refractored.MvvmHelpers": "1.0.1",
+    "Xam.Plugin.ExternalMaps": "3.0.0",
+    "Xam.Plugins.Forms.ImageCircle": "1.4.1",
+    "Xam.Plugins.Messaging": "3.2.1",
+    "Xamarin.Forms": "2.2.0.31",
+    "Xamarin.Forms.Maps": "2.2.0.31"
+  },
+  "frameworks": {
+    "uap10.0": {}
+  },
+  "runtimes": {
+    "win10-arm": {},
+    "win10-arm-aot": {},
+    "win10-x86": {},
+    "win10-x86-aot": {},
+    "win10-x64": {},
+    "win10-x64-aot": {}
+  }
+}

@@ -1,0 +1,5 @@
+C:\Users\keithrogers\Source\Repos\Scavenger\ScavengerServer\Scavenger.Server.Domain\bin\Debug\Scavenger.Server.Domain.dll
+C:\Users\keithrogers\Source\Repos\Scavenger\ScavengerServer\Scavenger.Server.Domain\bin\Debug\Scavenger.Server.Domain.pdb
+C:\Users\keithrogers\Source\Repos\Scavenger\ScavengerServer\Scavenger.Server.Domain\obj\Debug\Scavenger.Server.Domain.dll
+C:\Users\keithrogers\Source\Repos\Scavenger\ScavengerServer\Scavenger.Server.Domain\obj\Debug\Scavenger.Server.Domain.pdb
+C:\Users\keithrogers\Source\Repos\Scavenger\ScavengerServer\Scavenger.Server.Domain\obj\Debug\Scavenger.Server.Domain.csprojResolveAssemblyReference.cache

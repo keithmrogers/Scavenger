@@ -1,0 +1,4 @@
+2016-06-11-19.59.39.106ZZ
+ERROR starting Orleans silo name=ROGERS Exception=
+Exc level 0: System.InvalidOperationException: Cannot start silo ROGERS due to prior initialization error
+   at Orleans.Runtime.Host.SiloHost.StartOrleansSilo(Boolean catchExceptions)

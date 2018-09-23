@@ -1,0 +1,11 @@
+2016-06-11-19.59.35.172ZZ
+ERROR starting Orleans silo name=ROGERS Exception=
+Exc level 0: System.IO.FileLoadException: Could not load file or assembly 'Microsoft.CodeAnalysis.CSharp, Version=1.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35' or one of its dependencies. The located assembly's manifest definition does not match the assembly reference. (Exception from HRESULT: 0x80131040)
+   at Orleans.CodeGenerator.RoslynCodeGenerator.GenerateAndLoadForAssemblies(Assembly[] inputs)
+   at Orleans.CodeGeneration.CodeGeneratorManager.GenerateAndCacheCodeForAllAssemblies()
+   at Orleans.Runtime.AssemblyProcessor.Initialize()
+   at Orleans.Serialization.SerializationManager.Initialize(Boolean useStandardSerializer, List`1 serializationProviders, Boolean useJsonFallbackSerializer)
+   at Orleans.Runtime.Silo..ctor(String name, SiloType siloType, ClusterConfiguration config, ILocalDataStore keyStore)
+   at Orleans.Runtime.Silo..ctor(String name, SiloType siloType, ClusterConfiguration config)
+   at Orleans.Runtime.Host.SiloHost.InitializeOrleansSilo()
+Exc level 1: System.IO.FileLoadException: Could not load file or assembly 'Microsoft.CodeAnalysis.CSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35' or one of its dependencies. The located assembly's manifest definition does not match the assembly reference. (Exception from HRESULT: 0x80131040)

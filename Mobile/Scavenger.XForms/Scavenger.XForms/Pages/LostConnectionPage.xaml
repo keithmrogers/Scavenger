@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Scavenger.XForms.Pages.LostConnectionPage">
+  <ContentPage.Content>
+    <ContentView>
+      <StackLayout Spacing="0">
+        <Label Text="The connection to the server has been lost" VerticalOptions="Center" />
+        <Button Text="Close" Command="{Binding CloseCommand}" />
+      </StackLayout>
+    </ContentView>
+  </ContentPage.Content>
+</ContentPage>

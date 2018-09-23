@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" x:Class="Scavenger.XForms.Pages.SplashPage">
+  <ContentPage.Content>
+    <AbsoluteLayout>
+      <Image Source="splash2" Aspect="AspectFill" AbsoluteLayout.LayoutFlags="All" AbsoluteLayout.LayoutBounds="0, 0, 1.0, 1.0" />
+      <Label Text="{Binding WaitingToConnectMessage}" AbsoluteLayout.LayoutFlags="PositionProportional" TextColor="White" AbsoluteLayout.LayoutBounds="0.5,0.1,-1,-1" FontSize="20"/>
+      <ActivityIndicator IsRunning="True" AbsoluteLayout.LayoutFlags="PositionProportional" Color="White" AbsoluteLayout.LayoutBounds="0.5,0.8,-1,-1"/>
+    </AbsoluteLayout>
+  </ContentPage.Content>
+</ContentPage>

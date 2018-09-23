@@ -1,0 +1,26 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Server
+/ScavengerServer/Scavenger.Server.OrleansHost/obj/Debug/build.force
+/ScavengerServer/ScavengerServer/obj/Debug/build.force
+
+/ScavengerGuide/Library/*
+/ScavengerGuide/ScavengerGuide_Data/*
+/ScavengerGuide/Temp/*
+/ScavengerGuide/Assets/Standard Assets/*
+/.vs/*
+
+*.cache
+*.dll
+*.exe
+*.pdb
+/build/
+*.suo
+*.user
+_ReSharper.*/
+*.sdf
+*.opensdf
+*.tlog
+*.log
