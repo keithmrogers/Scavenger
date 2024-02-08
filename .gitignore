@@ -24,3 +24,5 @@ _ReSharper.*/
 *.opensdf
 *.tlog
 *.log
+/ScavengerServer/.vs
+/ScavengerServer/Scavenger.Server/obj
