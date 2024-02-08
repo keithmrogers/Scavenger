@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Orleans;
+﻿using Orleans;
 using Scavenger.Server.Domain;
+using System.Threading.Tasks;
 
 namespace Scavenger.Server.GrainInterfaces
 {

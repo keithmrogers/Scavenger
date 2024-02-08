@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Orleans;
+using Scavenger.Server.GrainInterfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using Orleans;
-using Scavenger.Server.GrainInterfaces;
 
 namespace Scavenger.Server.Grains
 {
@@ -13,23 +13,23 @@ namespace Scavenger.Server.Grains
         private List<Guid> _lobbiesWaitingForGuides;
         private List<Guid> _lobbiesWaitingForScavengers;
 
-        public override Task OnActivateAsync()
+        public override Task OnActivateAsync(CancellationToken cancellationToken)
         {
             _lobbiesWaitingForGuides = new List<Guid>();
             _lobbiesWaitingForScavengers = new List<Guid>();
-            return base.OnActivateAsync();
+            return base.OnActivateAsync(cancellationToken);
         }
 
         public async Task AddLobbyWaitingForGuide(Guid lobbyId)
         {
             _lobbiesWaitingForGuides.Add(lobbyId);
-            await TaskDone.Done;
+            await Task.CompletedTask;
         }
 
         public async Task AddLobbyWaitingForScavenger(Guid lobbyId)
         {
             _lobbiesWaitingForScavengers.Add(lobbyId);
-            await TaskDone.Done;
+            await Task.CompletedTask;
         }
 
         public async Task RemoveLobby(Guid lobbyId)
@@ -42,23 +42,23 @@ namespace Scavenger.Server.Grains
             {
                 _lobbiesWaitingForScavengers.Remove(lobbyId);
             }
-            await TaskDone.Done;
+            await Task.CompletedTask;
         }
-        
-        public async Task GuideJoinLobby(ILobbyObserver lobbyObserver, IGuideObserver guideObserver)
+
+        public async Task GuideJoinLobby(ILobbyObserver lobbyObserver)
         {
             var lobbyId = _lobbiesWaitingForGuides.Any() ? _lobbiesWaitingForGuides.First() : Guid.NewGuid();
             var lobby = GrainFactory.GetGrain<ILobbyGrain>(lobbyId);
-            
-            await lobby.GuideJoin(lobbyObserver, guideObserver);
+
+            await lobby.GuideJoin(lobbyObserver);
         }
 
-        public async Task ScavengerJoinLobby(ILobbyObserver lobbyObserver, IScavengerObserver scavengerObserver)
+        public async Task ScavengerJoinLobby(ILobbyObserver lobbyObserver)
         {
             var lobbyId = _lobbiesWaitingForScavengers.Any() ? _lobbiesWaitingForScavengers.First() : Guid.NewGuid();
             var lobby = GrainFactory.GetGrain<ILobbyGrain>(lobbyId);
 
-            await lobby.ScavengerJoin(lobbyObserver, scavengerObserver);
+            await lobby.ScavengerJoin(lobbyObserver);
         }
     }
 }

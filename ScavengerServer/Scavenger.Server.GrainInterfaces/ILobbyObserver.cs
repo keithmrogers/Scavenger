@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Orleans;
+using System;
 using System.Threading.Tasks;
-using Orleans;
 
 namespace Scavenger.Server.GrainInterfaces
 {
     public interface ILobbyObserver : IGrainObserver
     {
-        void LobbyReady(Guid scavengerId, Guid guideId);
+        Task LobbyReady(Guid scavengerId, Guid guideId);
     }
 }

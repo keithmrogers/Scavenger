@@ -1,41 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Orleans;
-using Orleans.Concurrency;
+﻿using Orleans;
 using Scavenger.Server.Domain;
 using Scavenger.Server.GrainInterfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Scavenger.Server.Grains
 {
     public class LobbyGrain : Grain, ILobbyGrain
     {
         private Lobby _lobby;
+        private HashSet<ILobbyObserver> _observers;
 
-        private ObserverSubscriptionManager<ILobbyObserver> _observers;
-        private IGuideObserver _guideObserver;
-        private IScavengerObserver _scavengerObserver;
-
-        public override Task OnActivateAsync()
+        public override Task OnActivateAsync(CancellationToken cancellationToken)
         {
             _lobby = new Lobby();
             _lobby.OnReady += Lobby_OnReady;
 
-            this._observers = new ObserverSubscriptionManager<ILobbyObserver>();
-            return base.OnActivateAsync();
+            this._observers = new HashSet<ILobbyObserver>();
+            return base.OnActivateAsync(cancellationToken);
         }
 
-        public Task GuideJoin(ILobbyObserver lobbyObserver, IGuideObserver guideObserver)
+        public Task GuideJoin(ILobbyObserver lobbyObserver)
         {
             Subscribe(lobbyObserver);
-            _guideObserver = guideObserver;
 
             var guideGrain = GrainFactory.GetGrain<IGuideGrain>(Guid.NewGuid());
             _lobby.AddGuide(guideGrain.GetPrimaryKey());
 
-            Console.WriteLine($"Guide {_lobby.GuideId} joined Lobby { this.GetPrimaryKey()}");
+            Console.WriteLine($"Guide {_lobby.GuideId} joined Lobby {this.GetPrimaryKey()}");
 
             if (_lobby.IsWaitingForScavenger)
             {
@@ -43,15 +38,11 @@ namespace Scavenger.Server.Grains
                 lobbyManagerGrain.AddLobbyWaitingForScavenger(this.GetPrimaryKey());
             }
 
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         private void Lobby_OnReady(Lobby lobby)
         {
-            var scavengerGrain = GrainFactory.GetGrain<IScavengerGrain>(lobby.ScavengerId.Value);
-            scavengerGrain.SubscribeGuide(_guideObserver);
-            scavengerGrain.SubscribeScavenger(_scavengerObserver);
-
             var guideGrain = GrainFactory.GetGrain<IGuideGrain>(lobby.GuideId.Value);
             guideGrain.SetScavenger(lobby.ScavengerId.Value);
 
@@ -59,20 +50,19 @@ namespace Scavenger.Server.Grains
 
             lobbyManagerGrain.RemoveLobby(this.GetPrimaryKey());
 
-            _observers.Notify(o => o.LobbyReady(lobby.ScavengerId.Value, lobby.GuideId.Value));
+            Task.WhenAll(_observers.Select(o => o.LobbyReady(lobby.ScavengerId.Value, lobby.GuideId.Value)));
 
-            Console.WriteLine($"Lobby { this.GetPrimaryKey()} Ready!");
+            Console.WriteLine($"Lobby {this.GetPrimaryKey()} Ready!");
         }
 
-        public Task ScavengerJoin(ILobbyObserver lobbyObserver, IScavengerObserver scavengerObserver)
+        public Task ScavengerJoin(ILobbyObserver lobbyObserver)
         {
             Subscribe(lobbyObserver);
-            _scavengerObserver = scavengerObserver;
 
             var scavengerGrain = GrainFactory.GetGrain<IScavengerGrain>(Guid.NewGuid());
             _lobby.AddScavenger(scavengerGrain.GetPrimaryKey());
-            
-            Console.WriteLine($"Scavenger {_lobby.ScavengerId} joined Lobby { this.GetPrimaryKey()}");
+
+            Console.WriteLine($"Scavenger {_lobby.ScavengerId} joined Lobby {this.GetPrimaryKey()}");
 
             if (_lobby.IsWaitingForGuide)
             {
@@ -80,18 +70,18 @@ namespace Scavenger.Server.Grains
                 lobbyManagerGrain.AddLobbyWaitingForGuide(this.GetPrimaryKey());
             }
 
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         public Task Subscribe(ILobbyObserver observer)
         {
-            this._observers.Subscribe(observer);
-            return TaskDone.Done;
+            this._observers.Add(observer);
+            return Task.CompletedTask;
         }
         public Task Unsubscribe(ILobbyObserver observer)
         {
-            this._observers.Unsubscribe(observer);
-            return TaskDone.Done;
+            this._observers.Remove(observer);
+            return Task.CompletedTask;
         }
     }
 }

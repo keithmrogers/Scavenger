@@ -1,24 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
+using FastEndpoints;
+using FastEndpoints.Swagger;
+using Orleans.Hosting;
 
-namespace Scavenger.Web
+var builder = WebApplication.CreateSlimBuilder(args);
+
+builder.Services.AddFastEndpoints();
+builder.Services.SwaggerDocument(o =>
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var host = new WebHostBuilder()
-                .UseKestrel()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseIISIntegration()
-                .UseStartup<Startup>()
-                .Build();
+    o.ShortSchemaNames = true;
+});
 
-            host.Run();
-        }
-    }
+if (builder.Environment.IsDevelopment())
+{
+    builder.Host.UseOrleans((_, builder) =>
+    {
+        builder
+            .UseLocalhostClustering();
+    });
 }
+
+var app = builder.Build();
+
+app.UseFastEndpoints()
+   .UseSwaggerGen(); //add this
+
+app.Run();

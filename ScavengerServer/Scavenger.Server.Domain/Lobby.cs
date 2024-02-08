@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Scavenger.Server.Domain
 {
@@ -45,7 +41,7 @@ namespace Scavenger.Server.Domain
 
         public event Action<Lobby> OnReady;
 
-        public bool IsReady{ get { return ScavengerId.HasValue && GuideId.HasValue; } }
+        public bool IsReady { get { return ScavengerId.HasValue && GuideId.HasValue; } }
 
         public bool IsWaitingForGuide { get { return !GuideId.HasValue; } }
 

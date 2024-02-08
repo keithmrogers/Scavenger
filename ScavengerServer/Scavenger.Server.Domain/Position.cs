@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Orleans;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Scavenger.Server.Domain
 {
+    [GenerateSerializer]
     public class Position : INotifyPropertyChanged
     {
         public Position(double x, double y)
@@ -17,16 +14,19 @@ namespace Scavenger.Server.Domain
         private double _y;
         private double _x;
 
+        [Id(0)]
         public double X
         {
             get { return _x; }
-            set {
+            set
+            {
                 if (_x.Equals(value)) return;
                 _x = value;
                 NotifyPropertyChanged("X");
             }
         }
 
+        [Id(1)]
         public double Y
         {
             get { return _y; }
@@ -60,7 +60,7 @@ namespace Scavenger.Server.Domain
         {
             unchecked
             {
-                return (_y.GetHashCode()*397) ^ _x.GetHashCode();
+                return (_y.GetHashCode() * 397) ^ _x.GetHashCode();
             }
         }
     }

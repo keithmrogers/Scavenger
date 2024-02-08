@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Orleans;
+﻿using Orleans;
 using Orleans.Providers;
 using Scavenger.Server.Domain;
 using Scavenger.Server.GrainInterfaces;
+using System.Threading.Tasks;
 
 namespace Scavenger.Server.Grains
 {
@@ -16,7 +12,7 @@ namespace Scavenger.Server.Grains
         public async Task<Leaderboard> ScavengerFoundEgg(EggFoundResult result)
         {
             var speed = result.Distance / result.TimeMs;
-            
+
             if (speed > State.FastestEggFindMs)
             {
                 State.FastestEggFindMs = speed;

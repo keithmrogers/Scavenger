@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Orleans;
+﻿using Orleans;
 using Scavenger.Server.Domain;
+using System.Threading.Tasks;
 
 namespace Scavenger.Server.GrainInterfaces
 {
-    public interface IGuideObserver: IGrainObserver
+    public interface IGuideObserver : IGrainObserver
     {
-        void ScavengerMoved(Position position);
-        void ScavengerChangedDirection(double direction);
+        Task ScavengerMoved(Position position);
+        Task ScavengerChangedDirection(double direction);
 
-        void EggFound(Leaderboard leaderboard);
+        Task EggFound(Leaderboard leaderboard);
     }
 }

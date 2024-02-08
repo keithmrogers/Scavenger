@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Orleans;
+using System;
 using System.Threading.Tasks;
-using Orleans;
 
 namespace Scavenger.Server.GrainInterfaces
 {
@@ -14,7 +11,7 @@ namespace Scavenger.Server.GrainInterfaces
 
         Task RemoveLobby(Guid lobbyId);
 
-        Task GuideJoinLobby(ILobbyObserver lobbyObserver, IGuideObserver scavengerObserver);
-        Task ScavengerJoinLobby(ILobbyObserver lobbyObserver, IScavengerObserver scavengerObserver);
+        Task GuideJoinLobby(ILobbyObserver lobbyObserver);
+        Task ScavengerJoinLobby(ILobbyObserver lobbyObserver);
     }
 }

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Orleans;
-using Scavenger.Server.Domain;
+﻿using Orleans;
 using Scavenger.Server.GrainInterfaces;
+using System;
+using System.Threading.Tasks;
 
 namespace Scavenger.Server.Grains
 {
@@ -17,7 +13,7 @@ namespace Scavenger.Server.Grains
         {
             _scavengerId = scavengerId;
 
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         public Task ScavengerFoundEgg()
@@ -25,7 +21,7 @@ namespace Scavenger.Server.Grains
             var scavengerGrain = GrainFactory.GetGrain<IScavengerGrain>(_scavengerId);
             scavengerGrain.FoundEgg();
 
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         public Task Subscribe(IGuideObserver guideObserver)
@@ -33,7 +29,7 @@ namespace Scavenger.Server.Grains
             var scavengerGrain = GrainFactory.GetGrain<IScavengerGrain>(_scavengerId);
             scavengerGrain.SubscribeGuide(guideObserver);
 
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
 
         public Task Unsubscribe(IGuideObserver guideObserver)
@@ -41,7 +37,7 @@ namespace Scavenger.Server.Grains
             var scavengerGrain = GrainFactory.GetGrain<IScavengerGrain>(_scavengerId);
             scavengerGrain.UnsubscribeGuide(guideObserver);
 
-            return TaskDone.Done;
+            return Task.CompletedTask;
         }
     }
 }
