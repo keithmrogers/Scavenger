@@ -1,0 +1,11 @@
+@Scavenger.Api_HostAddress = http://localhost:5120
+
+GET {{Scavenger.Api_HostAddress}}/api/guide/start
+Accept: application/json
+
+###
+
+GET {{Scavenger.Api_HostAddress}}/api/scavenger/start
+Accept: application/json
+
+###
