@@ -1,5 +1,6 @@
 param appName string
 param acrName string
+param clusterId string
 param repositoryImage string
 param location string = resourceGroup().location
 
@@ -36,6 +37,10 @@ var envVars = [
   {
     name: 'ORLEANS_AZURE_STORAGE_CONNECTION_STRING'
     value: storageModule.outputs.connectionString
+  }
+  {
+    name: 'ORLEANS_CLUSTER_ID'
+    value: clusterId
   }
   {
     name: 'ASPNETCORE_FORWARDEDHEADERS_ENABLED'

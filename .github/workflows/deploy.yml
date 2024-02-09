@@ -8,6 +8,7 @@ on:
 env:
   UNIQUE_APP_NAME: scvngrapi
   API_IMAGE_NAME: scavenger-api
+  CLUSTER_ID: scavenger-cluster
   AZURE_RESOURCE_GROUP_NAME: rg-krogers
   AZURE_RESOURCE_GROUP_LOCATION: centralus
 
@@ -66,6 +67,7 @@ jobs:
           --parameters location=${{ env.AZURE_RESOURCE_GROUP_LOCATION }} \
             appName=${{ env.UNIQUE_APP_NAME }} \
             acrName=${{ env.ACR_NAME }} \
+            clusterId=${{ env.CLUSTER_ID }} \
             repositoryImage=${{ env.ACR_LOGIN_SERVER }}/${{ env.API_IMAGE_NAME }}:${{ github.sha }} \
           --debug
 
