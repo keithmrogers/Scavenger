@@ -6,7 +6,7 @@ on:
     - master
 
 env:
-  UNIQUE_APP_NAME: scavenger-api
+  UNIQUE_APP_NAME: scvngrapi
   API_IMAGE_NAME: scavenger-api
   AZURE_RESOURCE_GROUP_NAME: rg-krogers
   AZURE_RESOURCE_GROUP_LOCATION: centralus
