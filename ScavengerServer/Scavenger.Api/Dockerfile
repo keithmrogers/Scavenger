@@ -31,4 +31,4 @@ FROM base AS final
 WORKDIR /app
 EXPOSE 8080
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Orleans.ShoppingCart.Silo.dll"]
+ENTRYPOINT ["./Scavenger.Api"]
