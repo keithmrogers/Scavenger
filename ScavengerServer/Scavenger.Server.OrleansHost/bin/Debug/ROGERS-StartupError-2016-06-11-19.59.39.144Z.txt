@@ -1,4 +1,0 @@
-2016-06-11-19.59.39.144ZZ
-ERROR starting Orleans silo name=ROGERS Exception=
-Exc level 0: System.SystemException: Failed to start Orleans silo 'ROGERS' as a Primary node.
-   at Scavenger.Server.OrleansHost.OrleansHostWrapper.Run() in C:\Users\keithrogers\Source\Repos\Scavenger\ScavengerServer\Scavenger.Server.OrleansHost\OrleansHostWrapper.cs:line 44
