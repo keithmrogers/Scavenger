@@ -7,35 +7,16 @@ namespace Scavenger.Server.Grains
 {
     public class GuideGrain : Grain, IGuideGrain
     {
-        private Guid _scavengerId;
+        private Guid gameId;
 
-        public Task SetScavenger(Guid scavengerId)
+        public Task<Guid> GetGameId()
         {
-            _scavengerId = scavengerId;
-
-            return Task.CompletedTask;
+            return Task.FromResult(gameId);
         }
 
-        public Task ScavengerFoundEgg()
+        public Task SetGameId(Guid gameId)
         {
-            var scavengerGrain = GrainFactory.GetGrain<IScavengerGrain>(_scavengerId);
-            scavengerGrain.FoundEgg();
-
-            return Task.CompletedTask;
-        }
-
-        public Task Subscribe(IGuideObserver guideObserver)
-        {
-            var scavengerGrain = GrainFactory.GetGrain<IScavengerGrain>(_scavengerId);
-            scavengerGrain.SubscribeGuide(guideObserver);
-
-            return Task.CompletedTask;
-        }
-
-        public Task Unsubscribe(IGuideObserver guideObserver)
-        {
-            var scavengerGrain = GrainFactory.GetGrain<IScavengerGrain>(_scavengerId);
-            scavengerGrain.UnsubscribeGuide(guideObserver);
+            this.gameId = gameId;
 
             return Task.CompletedTask;
         }

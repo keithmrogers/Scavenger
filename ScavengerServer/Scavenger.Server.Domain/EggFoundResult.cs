@@ -6,8 +6,8 @@ namespace Scavenger.Server.Domain
     public class EggFoundResult
     {
         [Id(0)]
-        public double Distance { get; internal set; }
+        public double Distance { get; set; }
         [Id(1)]
-        public int TimeMs { get; internal set; }
+        public int TimeSeconds { get; set; }
     }
 }

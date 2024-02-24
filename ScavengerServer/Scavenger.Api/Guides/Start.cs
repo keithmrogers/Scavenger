@@ -1,18 +1,16 @@
 ﻿using FastEndpoints;
+using Orleans.Runtime;
+using Orleans.Streams;
+using Scavenger.Server.Domain;
 using Scavenger.Server.GrainInterfaces;
 
 namespace Scavenger.Api.Guides
 {
-    public class Start
-  : EndpointWithoutRequest<StartResponse>, ILobbyObserver
+    public class Start(IClusterClient client)
+    : EndpointWithoutRequest<StartResponse>
     {
-        private readonly IClusterClient client;
+        private readonly IClusterClient client = client;
         private StartResponse? response;
-
-        public Start(IClusterClient client)
-        {
-            this.client = client;
-        }
 
         public override void Configure()
         {
@@ -22,10 +20,19 @@ namespace Scavenger.Api.Guides
 
         public override async Task HandleAsync(CancellationToken ct)
         {
-            var lobbyObserver = client.CreateObjectReference<ILobbyObserver>(this);
             var lobbyManagerGrain = client.GetGrain<ILobbyManagerGrain>(0);
+            var lobby = await lobbyManagerGrain.GuideJoinLobby();
 
-            await lobbyManagerGrain.GuideJoinLobby(lobbyObserver);
+            if (lobby.IsReady)
+            {
+                response = new StartResponse { GuideId = lobby.GuideId!.Value };
+            }
+            else
+            {
+                var streamProvider = client.GetStreamProvider("SMSProvider");
+                var stream = streamProvider.GetStream<IDomainEvent>(StreamId.Create("Lobby", lobby.LobbyId));
+                await stream.SubscribeAsync(OnNextAsync);
+            }
 
             while (!ct.IsCancellationRequested)//wait for the response
             {
@@ -37,9 +44,17 @@ namespace Scavenger.Api.Guides
             }
         }
 
-        public Task LobbyReady(Guid scavengerId, Guid guideId)
+        private async Task OnNextAsync(IDomainEvent item, StreamSequenceToken? token = null)
         {
-            response = new StartResponse { GuideId = guideId };
+            if (item is LobbyReadyEvent e)
+            {
+                await LobbyReady(e);
+            }
+        }
+
+        public Task LobbyReady(LobbyReadyEvent e)
+        {
+            response = new StartResponse { GuideId = e.GuideId };
             return Task.CompletedTask;
         }
     }

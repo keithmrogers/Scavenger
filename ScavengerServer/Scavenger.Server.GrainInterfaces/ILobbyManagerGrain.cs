@@ -1,4 +1,5 @@
 ﻿using Orleans;
+using Scavenger.Server.Domain;
 using System;
 using System.Threading.Tasks;
 
@@ -8,10 +9,7 @@ namespace Scavenger.Server.GrainInterfaces
     {
         Task AddLobbyWaitingForScavenger(Guid lobbyId);
         Task AddLobbyWaitingForGuide(Guid lobbyId);
-
-        Task RemoveLobby(Guid lobbyId);
-
-        Task GuideJoinLobby(ILobbyObserver lobbyObserver);
-        Task ScavengerJoinLobby(ILobbyObserver lobbyObserver);
+        Task<Lobby> GuideJoinLobby();
+        Task<Lobby> ScavengerJoinLobby();
     }
 }

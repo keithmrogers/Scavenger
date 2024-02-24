@@ -1,4 +1,5 @@
 ﻿using Orleans;
+using Scavenger.Server.Domain;
 using Scavenger.Server.GrainInterfaces;
 using System;
 using System.Collections.Generic;
@@ -45,20 +46,36 @@ namespace Scavenger.Server.Grains
             await Task.CompletedTask;
         }
 
-        public async Task GuideJoinLobby(ILobbyObserver lobbyObserver)
+        public async Task<Lobby> GuideJoinLobby()
         {
             var lobbyId = _lobbiesWaitingForGuides.Any() ? _lobbiesWaitingForGuides.First() : Guid.NewGuid();
-            var lobby = GrainFactory.GetGrain<ILobbyGrain>(lobbyId);
+            var lobbyGrain = GrainFactory.GetGrain<ILobbyGrain>(lobbyId);
 
-            await lobby.GuideJoin(lobbyObserver);
+            var lobby = await lobbyGrain.GuideJoin();
+            if (lobby.IsWaitingForScavenger)
+            {
+                await AddLobbyWaitingForScavenger(lobbyId);
+            }
+            if(lobby.IsReady){
+                await RemoveLobby(lobbyId);
+            }
+            return lobby;
         }
 
-        public async Task ScavengerJoinLobby(ILobbyObserver lobbyObserver)
+        public async Task<Lobby> ScavengerJoinLobby()
         {
             var lobbyId = _lobbiesWaitingForScavengers.Any() ? _lobbiesWaitingForScavengers.First() : Guid.NewGuid();
-            var lobby = GrainFactory.GetGrain<ILobbyGrain>(lobbyId);
+            var lobbyGrain = GrainFactory.GetGrain<ILobbyGrain>(lobbyId);
 
-            await lobby.ScavengerJoin(lobbyObserver);
+            var lobby = await lobbyGrain.ScavengerJoin();
+            if (lobby.IsWaitingForGuide)
+            {
+                await AddLobbyWaitingForScavenger(lobbyId);
+            }
+            if(lobby.IsReady){
+                await RemoveLobby(lobbyId);
+            }
+            return lobby;
         }
     }
 }

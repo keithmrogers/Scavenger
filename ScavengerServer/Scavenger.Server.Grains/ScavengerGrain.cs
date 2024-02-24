@@ -1,8 +1,9 @@
 ﻿using Orleans;
+using Orleans.Runtime;
+using Orleans.Streams;
 using Scavenger.Server.Domain;
 using Scavenger.Server.GrainInterfaces;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,16 +12,11 @@ namespace Scavenger.Server.Grains
     public class ScavengerGrain : Grain, IScavengerGrain
     {
         private Domain.Scavenger _scavenger;
-
-        private HashSet<IGuideObserver> _guideObservers;
-
-        private HashSet<IScavengerObserver> _scavengerObservers;
-
+        private IAsyncStream<IDomainEvent> stream;
         public override Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            this._guideObservers = new HashSet<IGuideObserver>();
-            this._scavengerObservers = new HashSet<IScavengerObserver>();
-            _scavenger = new Domain.Scavenger();
+            var streamProvider = this.GetStreamProvider("SMSProvider");
+            stream = streamProvider.GetStream<IDomainEvent>(StreamId.Create("Scavenger", this.GetPrimaryKey()));
 
             return base.OnActivateAsync(cancellationToken);
         }
@@ -28,50 +24,28 @@ namespace Scavenger.Server.Grains
         public async Task Move(Position position)
         {
             _scavenger.Move(position);
-            await Task.WhenAll(_guideObservers.Select(observer => observer.ScavengerMoved(position)));
-        }
-
-        //TODO: Make Egg Finding a function of the scavenger domain, not dictated by the guide
-        public async Task FoundEgg()
-        {
-            var result = _scavenger.FoundEgg();
-
-            var leaderboardGrain = GrainFactory.GetGrain<IScavengerLeaderboardGrain>(0);
-
-            var leaderboard = await leaderboardGrain.ScavengerFoundEgg(result);
-
-            await Task.WhenAll(_guideObservers.Select(observer => observer.EggFound(leaderboard)));
-            await Task.WhenAll(_scavengerObservers.Select(observer => observer.EggFound()));
+            await StreamEvents(_scavenger);
         }
 
         public async Task ChangeDirection(double direction)
         {
             _scavenger.ChangeDirection(direction);
-            await Task.WhenAll(_guideObservers.Select(observer => observer.ScavengerChangedDirection(direction)));
+            await StreamEvents(_scavenger);
         }
 
-        public Task SubscribeGuide(IGuideObserver observer)
+        private async Task StreamEvents(Entity entity)
         {
-            this._guideObservers.Clear();
-            this._guideObservers.Add(observer);
-            return Task.CompletedTask;
-        }
-        public Task UnsubscribeGuide(IGuideObserver observer)
-        {
-            this._guideObservers.Remove(observer);
-            return Task.CompletedTask;
+            await stream.OnNextBatchAsync(entity.DomainEvents);
         }
 
-        public Task SubscribeScavenger(IScavengerObserver observer)
+        public async Task<Domain.Scavenger> GetScavenger()
         {
-            _scavengerObservers.Clear();
-            _scavengerObservers.Add(observer);
-            return Task.CompletedTask;
+            return await Task.FromResult(_scavenger);
         }
-        public Task UnsubscribeScavenger(IScavengerObserver observer)
+
+        public async Task<Guid> GetGameId()
         {
-            this._scavengerObservers.Remove(observer);
-            return Task.CompletedTask;
+            return await Task.FromResult(_scavenger.GameId);
         }
     }
 }

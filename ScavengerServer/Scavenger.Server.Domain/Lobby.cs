@@ -2,7 +2,7 @@
 
 namespace Scavenger.Server.Domain
 {
-    public class Lobby
+    public class Lobby(Guid lobbyId) : Entity
     {
         private Guid? _scavengerId;
         private Guid? _guideId;
@@ -39,19 +39,19 @@ namespace Scavenger.Server.Domain
             NotifyIfReady();
         }
 
-        public event Action<Lobby> OnReady;
-
         public bool IsReady { get { return ScavengerId.HasValue && GuideId.HasValue; } }
 
         public bool IsWaitingForGuide { get { return !GuideId.HasValue; } }
 
         public bool IsWaitingForScavenger { get { return !ScavengerId.HasValue; } }
 
+        public Guid LobbyId { get; set; } = lobbyId;
+
         private void NotifyIfReady()
         {
             if (IsReady)
             {
-                OnReady?.Invoke(this);
+                AddDomainEvent(new LobbyReadyEvent(ScavengerId.Value, GuideId.Value));
             }
         }
     }

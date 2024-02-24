@@ -11,19 +11,19 @@ namespace Scavenger.Server.Grains
     {
         public async Task<Leaderboard> ScavengerFoundEgg(EggFoundResult result)
         {
-            var speed = result.Distance / result.TimeMs;
+            var speed = result.Distance / result.TimeSeconds;
 
-            if (speed > State.FastestEggFindMs)
+            if (speed > State.FastestEggFindSeconds)
             {
-                State.FastestEggFindMs = speed;
+                State.FastestEggFindSeconds = speed;
             }
             if (result.Distance > State.FarthestDistanceBetweenEggFindsM)
             {
                 State.FarthestDistanceBetweenEggFindsM = result.Distance;
             }
-            if (result.TimeMs < State.ShortestTimeBetweenEggFindsMs)
+            if (result.TimeSeconds < State.ShortestTimeBetweenEggFindsSeconds)
             {
-                State.ShortestTimeBetweenEggFindsMs = result.TimeMs;
+                State.ShortestTimeBetweenEggFindsSeconds = result.TimeSeconds;
             }
             await WriteStateAsync();
 
