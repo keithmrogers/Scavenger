@@ -25,3 +25,4 @@ _ReSharper.*/
 *.opensdf
 *.tlog
 *.log
+.vscode
