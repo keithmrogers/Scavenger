@@ -1,8 +1,8 @@
 ﻿using Dapr;
-using Scavenger.ActorService;
+using Scavenger.Actors;
 using Scavenger.Core;
 
-namespace Scavenger.ActorService
+namespace Scavenger.Actors
 {
     public static class DomainEventTopicExtensions
     {

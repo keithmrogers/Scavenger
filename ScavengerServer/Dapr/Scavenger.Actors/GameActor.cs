@@ -4,7 +4,7 @@ using Dapr.Actors.Runtime;
 using Scavenger.Core;
 using Scavenger.Interfaces;
 
-namespace Scavenger.ActorService;
+namespace Scavenger.Actors;
 
 public class GameActor(ActorHost host, GameSettings gameSettings, ICollisionChecker collisionChecker, DaprClient client) : Actor(host), IGameActor
 {
@@ -14,32 +14,32 @@ public class GameActor(ActorHost host, GameSettings gameSettings, ICollisionChec
 
     protected override Task OnActivateAsync()
     {
-        game = new Game(this.Id.GetId(), gameSettings);
+        game = new Game(Id.GetId(), gameSettings);
         return Task.CompletedTask;
     }
 
     public async Task Start(Guid scavengerId, Guid guideId)
     {
 
-        Console.WriteLine($"Starting Game {this.Id}");
+        Console.WriteLine($"Starting Game {Id}");
         game!.Start(scavengerId, guideId);
 
-        var scavengerActor = this.ProxyFactory.CreateActorProxy<IScavengerActor>(scavengerId.ToActorId(), nameof(ScavengerActor));
+        var scavengerActor = ProxyFactory.CreateActorProxy<IScavengerActor>(scavengerId.ToActorId(), nameof(ScavengerActor));
         await scavengerActor!.Start(game.GameId);
 
-        var guideActor = this.ProxyFactory.CreateActorProxy<IGuideActor>(guideId.ToActorId(), nameof(GuideActor));
+        var guideActor = ProxyFactory.CreateActorProxy<IGuideActor>(guideId.ToActorId(), nameof(GuideActor));
         await guideActor.SetGameId(game.GameId);
 
         await DispatchEvents(game);
 
-        Console.WriteLine($"Game {this.Id} Started!");
+        Console.WriteLine($"Game {Id} Started!");
     }
 
     public async Task CheckFoundEgg()
     {
         if (game?.ScavengerId == null) throw new ArgumentException("ScavengerId has not been set yet");
 
-        var scavenger = this.ProxyFactory.CreateActorProxy<IScavengerActor>(game.ScavengerId.ToActorId(), nameof(ScavengerActor));
+        var scavenger = ProxyFactory.CreateActorProxy<IScavengerActor>(game.ScavengerId.ToActorId(), nameof(ScavengerActor));
         game.CheckFoundEgg(await scavenger.GetScavenger(), collisionChecker);
 
         await DispatchEvents(game);

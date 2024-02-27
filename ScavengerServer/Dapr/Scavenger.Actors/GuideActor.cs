@@ -1,7 +1,7 @@
 ﻿using Dapr.Actors.Runtime;
 using Scavenger.Interfaces;
 
-namespace Scavenger.ActorService
+namespace Scavenger.Actors
 {
     public class GuideActor(ActorHost host) : Actor(host), IGuideActor
     {

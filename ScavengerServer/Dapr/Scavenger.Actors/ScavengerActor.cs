@@ -3,7 +3,7 @@ using Dapr.Client;
 using Scavenger.Core;
 using Scavenger.Interfaces;
 
-namespace Scavenger.ActorService
+namespace Scavenger.Actors
 {
     public class ScavengerActor(ActorHost host, DaprClient client) : Actor(host), IScavengerActor
     {
@@ -12,7 +12,7 @@ namespace Scavenger.ActorService
 
         protected override Task OnActivateAsync()
         {
-            scavenger = new Core.Scavenger(this.Id.GetId());
+            scavenger = new Core.Scavenger(Id.GetId());
             return Task.CompletedTask;
         }
 

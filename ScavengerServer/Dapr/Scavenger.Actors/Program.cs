@@ -1,6 +1,6 @@
 using FastEndpoints;
 using FastEndpoints.Swagger;
-using Scavenger.ActorService;
+using Scavenger.Actors;
 using Scavenger.Core;
 
 var builder = WebApplication.CreateBuilder(args);

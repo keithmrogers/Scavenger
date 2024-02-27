@@ -4,7 +4,7 @@ using Dapr.Actors.Runtime;
 using Scavenger.Core;
 using Scavenger.Interfaces;
 
-namespace Scavenger.ActorService;
+namespace Scavenger.Actors;
 
 public class LobbyManagerActor(ActorHost host) : Actor(host), ILobbyManagerActor
 {
@@ -46,7 +46,7 @@ public class LobbyManagerActor(ActorHost host) : Actor(host), ILobbyManagerActor
     public async Task<Lobby> GuideJoinLobby()
     {
         var lobbyId = _lobbiesWaitingForGuides.Any() ? _lobbiesWaitingForGuides.First() : Guid.NewGuid();
-        var lobbyActor = this.ProxyFactory.CreateActorProxy<ILobbyActor>(lobbyId.ToActorId(), nameof(LobbyActor));
+        var lobbyActor = ProxyFactory.CreateActorProxy<ILobbyActor>(lobbyId.ToActorId(), nameof(LobbyActor));
 
         var lobby = await lobbyActor.GuideJoin();
         if (lobby.IsWaitingForScavenger)
@@ -64,7 +64,7 @@ public class LobbyManagerActor(ActorHost host) : Actor(host), ILobbyManagerActor
     public async Task<Lobby> ScavengerJoinLobby()
     {
         var lobbyId = _lobbiesWaitingForScavengers.Any() ? _lobbiesWaitingForScavengers.First() : Guid.NewGuid();
-        var lobbyActor = this.ProxyFactory.CreateActorProxy<ILobbyActor>(lobbyId.ToActorId(), nameof(LobbyActor));
+        var lobbyActor = ProxyFactory.CreateActorProxy<ILobbyActor>(lobbyId.ToActorId(), nameof(LobbyActor));
 
         var lobby = await lobbyActor.ScavengerJoin();
         if (lobby.IsWaitingForGuide)
@@ -78,11 +78,11 @@ public class LobbyManagerActor(ActorHost host) : Actor(host), ILobbyManagerActor
         }
         return lobby;
     }
-    
+
     private async Task StartGame(Guid scavengerId, Guid guideId)
     {
         var gameId = Guid.NewGuid();
-        var gameActor = this.ProxyFactory.CreateActorProxy<IGameActor>(gameId.ToActorId(), nameof(GameActor));
+        var gameActor = ProxyFactory.CreateActorProxy<IGameActor>(gameId.ToActorId(), nameof(GameActor));
 
         await gameActor.Start(scavengerId, guideId);
     }

@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Builder;
 using Scavenger.Core;
 using Scavenger.Interfaces;
 
-namespace Scavenger.ActorService.Events
+namespace Scavenger.Actors.Events
 {
     public class ScavengerMoved(IActorProxyFactory actorProxyFactory)
-: Endpoint<ScavengerMovedRequest>
+: Endpoint<ScavengerPositionChangedEvent>
     {
         private readonly IActorProxyFactory actorProxyFactory = actorProxyFactory;
 
@@ -17,9 +17,9 @@ namespace Scavenger.ActorService.Events
             Options(rb => rb.WithTopic("pubsub", "scavengers", nameof(ScavengerPositionChangedEvent), 1));
         }
 
-        public override async Task HandleAsync(ScavengerMovedRequest req, CancellationToken ct)
+        public override async Task HandleAsync(ScavengerPositionChangedEvent req, CancellationToken ct)
         {
-            await actorProxyFactory.CreateActorProxy<IGameActor>(req.ScavengerPositionChangedEvent!.GameId.ToActorId(), nameof(GameActor)).CheckFoundEgg();
+            await actorProxyFactory.CreateActorProxy<IGameActor>(req.GameId.ToActorId(), nameof(GameActor)).CheckFoundEgg();
             await SendOkAsync(ct);
         }
     }

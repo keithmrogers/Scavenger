@@ -2,13 +2,13 @@
 using Scavenger.Core;
 using Scavenger.Interfaces;
 
-namespace Scavenger.ActorService;
+namespace Scavenger.Actors;
 
 public class LeaderboardActor(ActorHost host) : Actor(host), ILeaderboardActor
 {
     public async Task<Leaderboard> ScavengerFoundEgg(EggFoundResult result)
     {
-        var leaderboard = await this.StateManager.GetStateAsync<Leaderboard>("leaderboard");
+        var leaderboard = await StateManager.GetStateAsync<Leaderboard>("leaderboard");
         var speed = result.Distance / result.TimeSeconds;
 
         if (speed > leaderboard.FastestEggFindSeconds)
@@ -23,7 +23,7 @@ public class LeaderboardActor(ActorHost host) : Actor(host), ILeaderboardActor
         {
             leaderboard.ShortestTimeBetweenEggFindsSeconds = result.TimeSeconds;
         }
-        await this.SaveStateAsync();
+        await SaveStateAsync();
 
         return leaderboard;
     }

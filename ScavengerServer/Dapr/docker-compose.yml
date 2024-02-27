@@ -1,0 +1,36 @@
+version: '3.4'
+
+services:
+
+  redis:
+    image: redis:6
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+
+  scavenger-actors:
+    image: ${DOCKER_REGISTRY-scavenger}/scavenger.actors:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Scavenger.Actors/Dockerfile
+
+  scavenger-actors-dapr:
+    image: "daprio/dapr:1.12.5"
+    network_mode: "service:scavenger-actors"
+    depends_on:
+      - scavenger-actors
+
+  scavenger-api:
+    image: ${DOCKER_REGISTRY-scavenger}/scavenger.api:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Scavenger.Api/Dockerfile
+      
+  scavenger-api-dapr:
+    image: "daprio/dapr:1.12.5"
+    network_mode: "service:scavenger-api"
+    depends_on:
+      - scavenger-api
+
+  dapr-placement:
+    image: "daprio/dapr:1.12.5"

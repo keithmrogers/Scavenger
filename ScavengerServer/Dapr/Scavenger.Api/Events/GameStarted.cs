@@ -12,7 +12,6 @@ namespace Scavenger.Api.Events
         public override void Configure()
         {
             Post("/events/game-started");
-            //Options(rb => rb.WithTopic("pubsub", "games");
             Options(rb => rb.WithTopic("pubsub", "games", nameof(GameStartedEvent),1));
         }
 

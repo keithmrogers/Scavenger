@@ -1,18 +1,16 @@
 ﻿using System.ComponentModel;
+using System.Runtime.Serialization;
 
 namespace Scavenger.Core;
 
-public class Position
+[DataContract]
+public class Position(double x, double y)
 {
-    public Position(double x, double y)
-    {
-        X = x;
-        Y = y;
-    }
+    [DataMember]
+    public double X { get; set; } = x;
 
-    public double X { get; set; }
-
-    public double Y { get; set; }
+    [DataMember]
+    public double Y { get; set; } = y;
 
     public override bool Equals(object? obj)
     {

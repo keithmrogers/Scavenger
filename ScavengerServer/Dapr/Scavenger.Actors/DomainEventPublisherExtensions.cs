@@ -2,7 +2,7 @@
 using Scavenger.Core;
 using static Grpc.Core.Metadata;
 
-namespace Scavenger.ActorService
+namespace Scavenger.Actors
 {
     public static class DomainEventPublisherExtensions
     {

@@ -1,6 +1,6 @@
 ﻿using Scavenger.Core;
 
-namespace Scavenger.ActorService;
+namespace Scavenger.Actors;
 
 public class CollisionChecker : ICollisionChecker
 {

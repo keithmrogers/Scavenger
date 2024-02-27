@@ -62,7 +62,7 @@ public class EventStream
         where TEvent : IDomainEvent
         where TResponse : class
     {
-        await SendEventStreamAsync(nameof(TEvent), FilterEventsAsync(reader, map, ct), ct);
+        await SendEventStreamAsync(typeof(TEvent).Name, FilterEventsAsync(reader, map, ct), ct);
     }
 
     private static async IAsyncEnumerable<object> FilterEventsAsync<TEvent, TResponse>(ChannelReader<IDomainEvent> reader, Func<TEvent, TResponse> map, [EnumeratorCancellation] CancellationToken ct) where TResponse : class

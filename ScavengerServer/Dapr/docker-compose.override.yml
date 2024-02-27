@@ -1,0 +1,67 @@
+version: '3.4'
+
+services:
+
+  redis:
+    image: redis:6
+    ports:
+      - "5379:6379"
+
+  zipkin:
+    ports:
+      - "5411:9411"
+
+  scavenger-actors:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - APP_API_TOKEN=${APP_API_TOKEN}
+    ports:
+      - "5269:80"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  scavenger-actors-dapr:
+    command: ["./daprd",
+      "-app-id", "scavenger-actors",
+      "-app-port", "80",
+      "-placement-host-address", "dapr-placement:50000",
+      "-components-path", "/components",
+      "-config", "/configuration/scavenger-config.yaml"
+      ]
+    environment:
+      - APP_API_TOKEN=${APP_API_TOKEN}
+    volumes:
+      - "./dapr/components/:/components"
+      - "./dapr/configuration/:/configuration"
+
+  scavenger-api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - APP_API_TOKEN=${APP_API_TOKEN}
+    ports:
+      - "5120:80"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  scavenger-api-dapr:
+    command: ["./daprd",
+      "-app-id", "scavenger-api",
+      "-app-port", "80",
+      "-placement-host-address", "dapr-placement:50000",
+      "-components-path", "/components",
+      "-config", "/configuration/scavenger-config.yaml"
+      ]
+    environment:
+      - APP_API_TOKEN=${APP_API_TOKEN}
+    volumes:
+      - "./dapr/components/:/components"
+      - "./dapr/configuration/:/configuration"
+
+  dapr-placement:
+    command: ["./placement", "-port", "50000", "-log-level", "debug"]
+    ports:
+      - "50000:50000"

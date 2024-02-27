@@ -4,6 +4,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>1a534678-7354-4b7d-af12-87b89d126d5c</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,6 +14,7 @@
     <PackageReference Include="Dapr.AspNetCore" Version="1.12.0" />
     <PackageReference Include="Fastendpoints" Version="5.22.0" />
     <PackageReference Include="FastEndpoints.Swagger" Version="5.22.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
   </ItemGroup>
 
   <ItemGroup>

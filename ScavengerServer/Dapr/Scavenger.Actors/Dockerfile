@@ -4,23 +4,24 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER app
 WORKDIR /app
 EXPOSE 8080
+EXPOSE 8081
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Scavenger.Api/Scavenger.Api.csproj", "Scavenger.Api/"]
+COPY ["Scavenger.ActorService/Scavenger.ActorService.csproj", "Scavenger.ActorService/"]
 COPY ["Scavenger.Core/Scavenger.Core.csproj", "Scavenger.Core/"]
 COPY ["Scavenger.Interfaces/Scavenger.Interfaces.csproj", "Scavenger.Interfaces/"]
-RUN dotnet restore "./Scavenger.Api/./Scavenger.Api.csproj"
+RUN dotnet restore "./Scavenger.ActorService/./Scavenger.ActorService.csproj"
 COPY . .
-WORKDIR "/src/Scavenger.Api"
-RUN dotnet build "./Scavenger.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Scavenger.ActorService"
+RUN dotnet build "./Scavenger.ActorService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Scavenger.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Scavenger.ActorService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Scavenger.Api.dll"]
+ENTRYPOINT ["dotnet", "Scavenger.ActorService.dll"]
