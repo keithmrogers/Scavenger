@@ -20,6 +20,8 @@ on:
 env:
   SERVICE: scavenger-api
   IMAGE: scavenger.api
+  AZURE_RESOURCE_GROUP_NAME: rg-krogers
+  AZURE_RESOURCE_GROUP_LOCATION: centralus
   DOTNET_VERSION: 8.0.x
   USE_DOTNET_PREVIEW: true
 
@@ -59,22 +61,56 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         include-prerelease: ${{ env.USE_DOTNET_PREVIEW }}
 
-    - name: Login to Container Registry
-      uses: docker/login-action@v1
+    - name: Login to Azure
+      uses: azure/login@v1
       with:
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+  
+    - name: Flex ACR Bicep
+      run: |
+        az deployment group create \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP_NAME }} \
+          --template-file '.github/workflows/flex/acr.bicep' \
+          --parameters location=${{ env.AZURE_RESOURCE_GROUP_LOCATION }}
+  
+    - name: Get ACR Login Server
+      run: |
+        ACR_NAME=$(az deployment group show -g ${{ env.AZURE_RESOURCE_GROUP_NAME }} -n acr \
+        --query properties.outputs.acrName.value | tr -d '"')
+        echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
+        ACR_LOGIN_SERVER=$(az deployment group show -g ${{ env.AZURE_RESOURCE_GROUP_NAME }} -n acr \
+        --query properties.outputs.acrLoginServer.value | tr -d '"')
+        echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_ENV
 
     - name: Compose build ${{ env.SERVICE }}
       run: sudo -E docker-compose build ${{ env.SERVICE }}
       working-directory: ./ScavengerServer
       shell: bash
       env:
-        REGISTRY: ${{ secrets.REGISTRY_ENDPOINT }}
+        REGISTRY: ${{ env.ACR_LOGIN_SERVER }}
 
+    - name: Login to ACR
+      run: |
+        access_token=$(az account get-access-token --query accessToken -o tsv)
+        refresh_token=$(curl https://${{ env.ACR_LOGIN_SERVER }}/oauth2/exchange -v \
+        -d "grant_type=access_token&service=${{ env.ACR_LOGIN_SERVER }}&access_token=$access_token" | jq -r .refresh_token)
+        # The null GUID 0000... tells the container registry that this is an ACR refresh token during the login flow
+        docker login -u 00000000-0000-0000-0000-000000000000 \
+        --password-stdin ${{ env.ACR_LOGIN_SERVER }} <<< "$refresh_token"
+  
     - name: Compose push ${{ env.SERVICE }}
       run: sudo -E docker-compose push ${{ env.SERVICE }}
       working-directory: ./ScavengerServer
       shell: bash
       env:
-        REGISTRY: ${{ secrets.REGISTRY_ENDPOINT }}
+        REGISTRY: ${{ env.ACR_LOGIN_SERVER }}
+        
+
+    - name: Get Container App URL
+      run: |
+        ACA_URL=$(az deployment group show -g ${{ env.AZURE_RESOURCE_GROUP_NAME }} \
+        -n main --query properties.outputs.acaUrl.value | tr -d '"')
+        echo $ACA_URL
+
+    - name: Logout of Azure
+      run: az logout
