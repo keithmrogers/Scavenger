@@ -67,26 +67,5 @@ namespace Scavenger.Api.Scavengers.EventStream
                 }
             }
         }
-
-        public async Task EggFound()
-        {
-            await WriteEventChannelAsync(EventType.EggFound, new EggFoundResponse());
-        }
-
-        private async Task WriteEventChannelAsync(string eventName, object item)
-        {
-            var channel = eventChannels[eventName];
-            await channel.Writer.WriteAsync(item);
-        }
-
-        public async Task OnNextAsync(IDomainEvent item, StreamSequenceToken? token = null)
-        {
-            switch (item)
-            {
-                case EggFoundEvent:
-                    await EggFound();
-                    break;
-            };
-        }
     }
 }

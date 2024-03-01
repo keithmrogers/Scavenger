@@ -74,21 +74,5 @@ public class EventStream
                 yield return map(evt);
             }
         }
-
-        public async Task OnNextAsync(IDomainEvent item, StreamSequenceToken? token = null)
-        {
-            switch (item)
-            {
-                case ScavengerPositionChangedEvent e:
-                    await ScavengerMoved(e.Position);
-                    break;
-                case ScavengerDirectionChangedEvent e:
-                    await ScavengerChangedDirection(e.Direction);
-                    break;
-                case EggFoundEvent:
-                    await EggFound();
-                    break;
-            };
-        }
     }
 }
