@@ -1,19 +1,10 @@
 ﻿using System;
-using System.ComponentModel;
 
 namespace Scavenger.Server.Domain
 {
-    public class Scavenger : INotifyPropertyChanged
+    public class Scavenger(Guid scavengerId, Guid gameId) : Entity
     {
-        public Scavenger()
-        {
-        }
         private Position _position;
-        private int _eggsCollected;
-
-        private Position LastEggPosition { get; set; }
-
-        private DateTime? LastEggFoundTime { get; set; }
 
         public Position Position
         {
@@ -22,9 +13,12 @@ namespace Scavenger.Server.Domain
             {
                 if (Position != null && Position.Equals(value)) return;
                 _position = value;
-                NotifyPropertyChanged("Position");
+                AddDomainEvent(new ScavengerPositionChangedEvent(ScavengerId, GameId, Position));
             }
         }
+
+        public Guid ScavengerId { get; private set; } = scavengerId;
+        public Guid GameId { get; private set; } = gameId;
 
         private double _direction;
         public double Direction
@@ -34,56 +28,26 @@ namespace Scavenger.Server.Domain
             {
                 if (Direction.Equals(value)) return;
                 _direction = value;
-                NotifyPropertyChanged("Direction");
+                AddDomainEvent(new ScavengerDirectionChangedEvent(_direction));
             }
         }
 
         public DateTime StartTime { get; set; }
         public Position StartPosition { get; set; }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public void ChangeDirection(double direction)
         {
             Direction = direction;
         }
 
-        private void NotifyPropertyChanged(string info)
+        public void Start()
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
-        }
-
-        public EggFoundResult FoundEgg()
-        {
-            _eggsCollected++;
-            var eggFoundTime = DateTime.Now;
-            var result = new EggFoundResult
-            {
-                Distance = GetDistance(LastEggPosition ?? StartPosition, Position),
-                TimeMs = (eggFoundTime - (LastEggFoundTime ?? StartTime)).Milliseconds
-            };
-
-            LastEggPosition = Position;
-            LastEggFoundTime = eggFoundTime;
-
-            return result;
-        }
-
-        private static double GetDistance(Position lastEggPosition, Position position)
-        {
-            var a = (double)(position.X - lastEggPosition.X);
-            var b = (double)(position.Y - lastEggPosition.Y);
-
-            return Math.Sqrt(a * a + b * b);
+            StartPosition = new Position(0, 0);
+            StartTime = DateTime.Now;
         }
 
         public void Move(Position location)
         {
-            if (Position == null)
-            {
-                StartPosition = location;
-                StartTime = DateTime.Now;
-            }
             Position = location;
         }
     }
