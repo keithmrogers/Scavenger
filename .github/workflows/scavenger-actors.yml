@@ -66,13 +66,6 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
   
-    - name: Flex ACR Bicep
-      run: |
-        az deployment group create \
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP_NAME }} \
-          --template-file '.github/workflows/flex/acr.bicep' \
-          --parameters location=${{ env.AZURE_RESOURCE_GROUP_LOCATION }}
-  
     - name: Get ACR Login Server
       run: |
         ACR_NAME=$(az deployment group show -g ${{ env.AZURE_RESOURCE_GROUP_NAME }} -n acr \
