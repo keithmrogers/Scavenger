@@ -13,6 +13,14 @@ module managedIdentity 'modules/infra/identity.bicep' = {
   }
 }
 
+module acr 'modules/infra/container-registry.bicep' = {
+  name: '${deployment().name}-infra-container-registry'
+  params: {
+    location: location
+    uniqueSeed: uniqueSeed
+  }
+}
+
 module containerAppsEnvironment 'modules/infra/container-apps-env.bicep' = {
   name: '${deployment().name}-infra-container-app-env'
   params: {
@@ -88,4 +96,3 @@ module scavengerApi 'modules/apps/api.bicep' = {
     managedIdentityId: managedIdentity.outputs.identityId
   }
 }
-

@@ -68,11 +68,11 @@ jobs:
   
     - name: Get ACR Login Server
       run: |
-        ACR_NAME=$(az deployment group show -g ${{ env.AZURE_RESOURCE_GROUP_NAME }} -n acr \
-        --query properties.outputs.acrName.value | tr -d '"')
+        ACR_NAME=$(az acr list -g ${{ env.AZURE_RESOURCE_GROUP_NAME }} \
+        --query [0].name | tr -d '"')
         echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
-        ACR_LOGIN_SERVER=$(az deployment group show -g ${{ env.AZURE_RESOURCE_GROUP_NAME }} -n acr \
-        --query properties.outputs.acrLoginServer.value | tr -d '"')
+        ACR_LOGIN_SERVER=$(az acr list -g ${{ env.AZURE_RESOURCE_GROUP_NAME }} \
+        --query [0].loginServer | tr -d '"')
         echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_ENV
 
     - name: Compose build ${{ env.SERVICE }}
