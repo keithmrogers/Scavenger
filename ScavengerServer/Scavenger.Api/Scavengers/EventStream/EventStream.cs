@@ -20,6 +20,13 @@ namespace Scavenger.Api.Scavengers.EventStream
             Get("/api/scavenger/{ScavengerId}/event-stream");
             AllowAnonymous();
         }
+        private Dictionary<string, Channel<object>> CreateChannels()
+        {
+            return new Dictionary<string, Channel<object>>
+            {
+                { EventType.EggFound, Channel.CreateUnbounded<object>() }
+            };
+        }
 
         public override async Task HandleAsync(EventStreamRequest req, CancellationToken ct)
         {
@@ -59,6 +66,27 @@ namespace Scavenger.Api.Scavengers.EventStream
                     yield return map(evt);
                 }
             }
+        }
+
+        public async Task EggFound()
+        {
+            await WriteEventChannelAsync(EventType.EggFound, new EggFoundResponse());
+        }
+
+        private async Task WriteEventChannelAsync(string eventName, object item)
+        {
+            var channel = eventChannels[eventName];
+            await channel.Writer.WriteAsync(item);
+        }
+
+        public async Task OnNextAsync(IDomainEvent item, StreamSequenceToken? token = null)
+        {
+            switch (item)
+            {
+                case EggFoundEvent:
+                    await EggFound();
+                    break;
+            };
         }
     }
 }

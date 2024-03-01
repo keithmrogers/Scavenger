@@ -1,4 +1,6 @@
 ﻿using Orleans;
+using Orleans.Runtime;
+using Orleans.Streams;
 using Scavenger.Server.Domain;
 using Scavenger.Server.GrainInterfaces;
 using System;
@@ -11,77 +13,67 @@ namespace Scavenger.Server.Grains
 {
     public class LobbyGrain : Grain, ILobbyGrain
     {
-        private Lobby _lobby;
-        private HashSet<ILobbyObserver> _observers;
+        private Lobby lobby;
+        private IAsyncStream<IDomainEvent> stream;
 
         public override Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            _lobby = new Lobby();
-            _lobby.OnReady += Lobby_OnReady;
+            lobby = new Lobby(this.GetPrimaryKey());
+            
+            var streamProvider = this.GetStreamProvider("SMSProvider");
+            stream = streamProvider.GetStream<IDomainEvent>(StreamId.Create("Lobby", this.GetPrimaryKey()));
 
-            this._observers = new HashSet<ILobbyObserver>();
+            stream.SubscribeAsync(OnNextAsync);
+
             return base.OnActivateAsync(cancellationToken);
         }
 
-        public Task GuideJoin(ILobbyObserver lobbyObserver)
+        public async Task<Lobby> GuideJoin()
         {
-            Subscribe(lobbyObserver);
-
             var guideGrain = GrainFactory.GetGrain<IGuideGrain>(Guid.NewGuid());
-            _lobby.AddGuide(guideGrain.GetPrimaryKey());
+            lobby.AddGuide(guideGrain.GetPrimaryKey());
 
-            Console.WriteLine($"Guide {_lobby.GuideId} joined Lobby {this.GetPrimaryKey()}");
+            await StreamEvents(lobby);
 
-            if (_lobby.IsWaitingForScavenger)
-            {
-                var lobbyManagerGrain = GrainFactory.GetGrain<ILobbyManagerGrain>(0);
-                lobbyManagerGrain.AddLobbyWaitingForScavenger(this.GetPrimaryKey());
-            }
+            Console.WriteLine($"Guide {lobby.GuideId} joined Lobby {this.GetPrimaryKey()}");
 
-            return Task.CompletedTask;
+            return await Task.FromResult(lobby);
         }
 
-        private void Lobby_OnReady(Lobby lobby)
+        public async Task<Lobby> ScavengerJoin()
         {
-            var guideGrain = GrainFactory.GetGrain<IGuideGrain>(lobby.GuideId.Value);
-            guideGrain.SetScavenger(lobby.ScavengerId.Value);
+            var scavengerGrain = GrainFactory.GetGrain<IScavengerGrain>(Guid.NewGuid());
+            lobby.AddScavenger(scavengerGrain.GetPrimaryKey());
 
-            var lobbyManagerGrain = GrainFactory.GetGrain<ILobbyManagerGrain>(0);
+            await StreamEvents(lobby);
+            
+            Console.WriteLine($"Guide {lobby.ScavengerId} joined Lobby {this.GetPrimaryKey()}");
 
-            lobbyManagerGrain.RemoveLobby(this.GetPrimaryKey());
+            return await Task.FromResult(lobby);
+        }
 
-            Task.WhenAll(_observers.Select(o => o.LobbyReady(lobby.ScavengerId.Value, lobby.GuideId.Value)));
+        private async Task StreamEvents(Entity entity)
+        {
+            await stream.OnNextBatchAsync(entity.DomainEvents);
+        }
+
+        private async Task OnNextAsync(IDomainEvent item, StreamSequenceToken token = null)
+        {
+            if(item is LobbyReadyEvent e){
+                await LobbyReady(e);
+            }
+        }
+
+        private async Task LobbyReady(LobbyReadyEvent e)
+        {
+            var gameGrain = GrainFactory.GetGrain<IGameGrain>(Guid.NewGuid());
+
+            await gameGrain.Start(e.ScavengerId);
+            
+            var guideGrain = GrainFactory.GetGrain<IGuideGrain>(e.GuideId);
+            await guideGrain.SetGameId(gameGrain.GetPrimaryKey());
 
             Console.WriteLine($"Lobby {this.GetPrimaryKey()} Ready!");
-        }
-
-        public Task ScavengerJoin(ILobbyObserver lobbyObserver)
-        {
-            Subscribe(lobbyObserver);
-
-            var scavengerGrain = GrainFactory.GetGrain<IScavengerGrain>(Guid.NewGuid());
-            _lobby.AddScavenger(scavengerGrain.GetPrimaryKey());
-
-            Console.WriteLine($"Scavenger {_lobby.ScavengerId} joined Lobby {this.GetPrimaryKey()}");
-
-            if (_lobby.IsWaitingForGuide)
-            {
-                var lobbyManagerGrain = GrainFactory.GetGrain<ILobbyManagerGrain>(0);
-                lobbyManagerGrain.AddLobbyWaitingForGuide(this.GetPrimaryKey());
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public Task Subscribe(ILobbyObserver observer)
-        {
-            this._observers.Add(observer);
-            return Task.CompletedTask;
-        }
-        public Task Unsubscribe(ILobbyObserver observer)
-        {
-            this._observers.Remove(observer);
-            return Task.CompletedTask;
         }
     }
 }

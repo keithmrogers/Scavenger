@@ -1,4 +1,4 @@
-﻿using Dapr.Actors.Client;
+using Dapr.Actors.Client;
 using Dapr.Actors;
 using FastEndpoints;
 using Scavenger.Core;

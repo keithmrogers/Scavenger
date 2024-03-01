@@ -1,5 +1,6 @@
 ﻿using Orleans;
 using Scavenger.Server.Domain;
+using System;
 using System.Threading.Tasks;
 
 namespace Scavenger.Server.GrainInterfaces
@@ -8,11 +9,7 @@ namespace Scavenger.Server.GrainInterfaces
     {
         Task Move(Position position);
         Task ChangeDirection(double direction);
-        Task SubscribeGuide(IGuideObserver observer);
-        Task UnsubscribeGuide(IGuideObserver observer);
-
-        Task SubscribeScavenger(IScavengerObserver observer);
-        Task UnsubscribeScavenger(IScavengerObserver observer);
-        Task FoundEgg();
+        Task<Domain.Scavenger> GetScavenger();
+        Task<Guid> GetGameId();
     }
 }
