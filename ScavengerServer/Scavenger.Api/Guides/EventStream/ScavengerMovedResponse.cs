@@ -1,9 +1,8 @@
-﻿using Scavenger.Server.Domain;
+﻿using Scavenger.Core;
 
-namespace Scavenger.Api.Guides.EventStream
+namespace Scavenger.Api.Guides.EventStream;
+
+internal class ScavengerMovedResponse
 {
-    internal class ScavengerMovedResponse
-    {
-        public required Position Position { get; set; }
-    }
+    public required Position Position { get; set; }
 }

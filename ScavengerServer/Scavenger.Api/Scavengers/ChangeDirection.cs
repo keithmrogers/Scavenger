@@ -1,18 +1,14 @@
-﻿using FastEndpoints;
-using Orleans;
-using Scavenger.Server.GrainInterfaces;
+﻿using Dapr.Actors;
+using Dapr.Actors.Client;
+using FastEndpoints;
+using Scavenger.Interfaces;
 
 namespace Scavenger.Api.Scavengers
 {
-    public class ChangeDirection
+    public class ChangeDirection(IActorProxyFactory actorProxyFactory)
   : Endpoint<ChangeDirectionRequest>
     {
-        private readonly IClusterClient client;
-
-        public ChangeDirection(IClusterClient client)
-        {
-            this.client = client;
-        }
+        private readonly IActorProxyFactory actorProxyFactory = actorProxyFactory;
 
         public override void Configure()
         {
@@ -22,8 +18,8 @@ namespace Scavenger.Api.Scavengers
 
         public override async Task HandleAsync(ChangeDirectionRequest req, CancellationToken ct)
         {
-            var guideGrain = client.GetGrain<IScavengerGrain>(req.ScavengerId);
-            await guideGrain.ChangeDirection(req.Direction);
+            var scavenger = actorProxyFactory.CreateActorProxy<IScavengerActor>(req.ScavengerId.ToActorId(), "ScavengerActor");
+            await scavenger.ChangeDirection(req.Direction);
         }
     }
 }

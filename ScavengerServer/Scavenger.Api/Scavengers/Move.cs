@@ -1,18 +1,13 @@
-﻿using FastEndpoints;
-using Orleans;
-using Scavenger.Server.GrainInterfaces;
+﻿using Dapr.Actors.Client;
+using FastEndpoints;
+using Scavenger.Interfaces;
 
 namespace Scavenger.Api.Scavengers
 {
-    public class Move
+    public class Move(IActorProxyFactory actorProxyFactory)
   : Endpoint<MoveRequest>
     {
-        private readonly IClusterClient client;
-
-        public Move(IClusterClient client)
-        {
-            this.client = client;
-        }
+        private readonly IActorProxyFactory actorProxyFactory = actorProxyFactory;
 
         public override void Configure()
         {
@@ -22,8 +17,8 @@ namespace Scavenger.Api.Scavengers
 
         public override async Task HandleAsync(MoveRequest req, CancellationToken ct)
         {
-            var guideGrain = client.GetGrain<IScavengerGrain>(req.ScavengerId);
-            await guideGrain.Move(req.Position);
+            var scavenger = actorProxyFactory.CreateActorProxy<IScavengerActor>(req.ScavengerId.ToActorId(), "ScavengerActor");
+            await scavenger.Move(req.Position!);
         }
     }
 }

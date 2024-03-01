@@ -1,0 +1,89 @@
+name: scavenger-actors
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - main
+
+    paths:
+    - ScavengerServer/Scavenger.Api/**
+    - .github/workflows/scavenger-api.yml
+  
+  pull_request:
+    branches:
+    - main
+
+    paths:
+    - ScavengerServer/Scavenger.Api/**
+    - .github/workflows/scavenger-api.yml
+env:
+  SERVICE: scavenger-api
+  IMAGE: scavenger.api
+  DOTNET_VERSION: 8.0.x
+  USE_DOTNET_PREVIEW: true
+
+jobs:
+
+  BuildContainersForPR_Linux:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+    - name: 'Checkout Github Action'
+      uses: actions/checkout@master
+    
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        include-prerelease: ${{ env.USE_DOTNET_PREVIEW }}
+
+    - name: Compose build ${{ env.SERVICE }}
+      run: sudo -E docker-compose build ${{ env.SERVICE }}
+      working-directory: ./ScavengerServer
+      shell: bash
+      env:
+        TAG: ${{ env.BRANCH }}
+        REGISTRY: ${{ secrets.REGISTRY_ENDPOINT }}
+
+  BuildLinux:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
+    steps:
+    - name: 'Checkout Github Action'
+      uses: actions/checkout@master
+  
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        include-prerelease: ${{ env.USE_DOTNET_PREVIEW }}
+
+    - name: Enable experimental features for the Docker daemon and CLI
+      run: |
+          echo $'{\n  "experimental": true\n}' | sudo tee /etc/docker/daemon.json
+          mkdir -p ~/.docker
+          echo $'{\n  "experimental": "enabled"\n}' | sudo tee ~/.docker/config.json
+          sudo service docker restart
+          docker version -f '{{.Client.Experimental}}'
+          docker version -f '{{.Server.Experimental}}'
+
+    - name: Login to Container Registry
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+
+    - name: Compose build ${{ env.SERVICE }}
+      run: sudo -E docker-compose build ${{ env.SERVICE }}
+      working-directory: ./ScavengerServer
+      shell: bash
+      env:
+        REGISTRY: ${{ secrets.REGISTRY_ENDPOINT }}
+
+    - name: Compose push ${{ env.SERVICE }}
+      run: sudo -E docker-compose push ${{ env.SERVICE }}
+      working-directory: ./ScavengerServer
+      shell: bash
+      env:
+        REGISTRY: ${{ secrets.REGISTRY_ENDPOINT }}

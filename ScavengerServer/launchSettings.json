@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "serviceActions": {
+        "scavenger-actors": "StartDebugging",
+        "scavenger-actors-dapr": "StartWithoutDebugging",
+        "scavenger-api": "StartDebugging",
+        "scavenger-api-dapr": "StartWithoutDebugging"
+      }
+    }
+  }
+}

@@ -1,10 +1,6 @@
 ﻿using FastEndpoints;
-using Microsoft.Extensions.Options;
-using Orleans;
-using Orleans.Runtime;
-using Orleans.Streams;
-using Scavenger.Server.Domain;
-using Scavenger.Server.GrainInterfaces;
+using Scavenger.Core;
+using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 
 namespace Scavenger.Api.Scavengers.EventStream
@@ -12,14 +8,13 @@ namespace Scavenger.Api.Scavengers.EventStream
     public class EventStream
   : Endpoint<EventStreamRequest>
     {
-        private readonly IClusterClient client;
-        private readonly Dictionary<string, Channel<object>> eventChannels;
+        private readonly IEventChannelManager channelManager;
 
-        public EventStream(IClusterClient client)
+        public EventStream(IEventChannelManager channelManager)
         {
-            this.client = client;
-            eventChannels = CreateChannels();
+            this.channelManager = channelManager;
         }
+
         public override void Configure()
         {
             Get("/api/scavenger/{ScavengerId}/event-stream");
@@ -35,17 +30,42 @@ namespace Scavenger.Api.Scavengers.EventStream
 
         public override async Task HandleAsync(EventStreamRequest req, CancellationToken ct)
         {
-            var scavengerGrain = client.GetGrain<IScavengerGrain>(req.ScavengerId);
-            var gameId = await scavengerGrain.GetGameId();
+            var reader = channelManager.GetReader(req.ScavengerId);
 
-            var eventChannel = Channel.CreateBounded<object>(1);
-            
-            var streamProvider = client.GetStreamProvider("SMSProvider");
-            
-            var gameStream = streamProvider.GetStream<IDomainEvent>(StreamId.Create("Game", gameId));
-            await gameStream.SubscribeAsync(OnNextAsync);
+            try
+            {
+                await Task.WhenAll(
+                [
+                    SendEventStreamAsync<EggFoundEvent, EggFoundResponse>(reader, OnEggFound, ct),
+                ]);
+            }
+            finally
+            {
+                channelManager.RemoveChannel(req.ScavengerId);
+            }
+        }
 
-            await SendEventStreamAsync("scavenger-events", eventChannel.Reader.ReadAllAsync(ct), ct);
+        public EggFoundResponse OnEggFound(EggFoundEvent @event)
+        {
+            return new EggFoundResponse();
+        }
+
+        private async Task SendEventStreamAsync<TEvent, TResponse>(ChannelReader<IDomainEvent> reader, Func<TEvent, TResponse> map, CancellationToken ct)
+            where TEvent : IDomainEvent
+            where TResponse : class
+        {
+            await SendEventStreamAsync(nameof(TEvent), FilterEventsAsync(reader, map, ct), ct);
+        }
+
+        private static async IAsyncEnumerable<object> FilterEventsAsync<TEvent, TResponse>(ChannelReader<IDomainEvent> reader, Func<TEvent, TResponse> map, [EnumeratorCancellation] CancellationToken ct) where TResponse : class
+        {
+            await foreach (var item in reader.ReadAllAsync(ct))
+            {
+                if (item is TEvent evt)
+                {
+                    yield return map(evt);
+                }
+            }
         }
 
         public async Task EggFound()

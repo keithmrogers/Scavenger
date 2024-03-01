@@ -1,11 +1,18 @@
+using System.Text;
 using FastEndpoints;
 using FastEndpoints.Swagger;
-using Orleans.Configuration;
-using Orleans.Hosting;
-using System.Net;
-using System;
+using Google.Api;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Scavenger.Api;
 
 var builder = WebApplication.CreateSlimBuilder(args);
+
+builder.Services.AddAuthentication().AddDapr();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddDapr();
+});
 
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument(o =>
@@ -13,46 +20,18 @@ builder.Services.SwaggerDocument(o =>
     o.ShortSchemaNames = true;
 });
 
-builder.Host.UseOrleans((context, siloBuilder) =>
-    {
-        if (builder.Environment.IsDevelopment())
-        {
-            siloBuilder
-                .UseLocalhostClustering();
-        }
-        else
-        {
-            var siloPort = 11111;
-            var gatewayPort = 30000;
+builder.Services.AddActors((options) => { });
+builder.Services.AddSingleton<IEventChannelManager, EventChannelManager>();
 
-            siloBuilder.ConfigureEndpoints(siloPort, gatewayPort);
+var app = builder.Build();
 
-            var connectionString = context.Configuration["ORLEANS_AZURE_STORAGE_CONNECTION_STRING"];
+app.UseCloudEvents();
 
-            siloBuilder.Configure<ClusterOptions>(
-            options =>
-            {
-                options.ClusterId = context.Configuration["ORLEANS_CLUSTER_ID"];
-                options.ServiceId = nameof(Scavenger.Server);
-            })
-                .UseAzureStorageClustering(
-                    options =>
-                    {
-                        options.ConfigureTableServiceClient(connectionString);
-                        options.TableName = $"{context.Configuration["ORLEANS_CLUSTER_ID"]}Clustering";
-                    })
-                .AddAzureTableGrainStorage("scavenger",
-                    options =>
-                    {
-                        options.ConfigureTableServiceClient(connectionString);
-                        options.TableName = $"{context.Configuration["ORLEANS_CLUSTER_ID"]}Persistence";
-                    });
-        }
-    });
+app.UseAuthentication();
+app.UseAuthorization();
 
-    var app = builder.Build();
+app.MapSubscribeHandler();
+app.UseFastEndpoints()
+   .UseSwaggerGen(); //add this
 
-    app.UseFastEndpoints()
-       .UseSwaggerGen(); //add this
-
-    app.Run();
+app.Run();

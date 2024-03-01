@@ -1,83 +1,78 @@
-﻿using FastEndpoints;
-using Orleans.Runtime;
-using Orleans.Streams;
-using Scavenger.Server.Domain;
-using Scavenger.Server.GrainInterfaces;
+using Dapr.Actors.Client;
+using Dapr.Client;
+using FastEndpoints;
+using Scavenger.Core;
+using Scavenger.Interfaces;
+using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 
-namespace Scavenger.Api.Guides.EventStream
+namespace Scavenger.Api.Guides.EventStream;
+
+public class EventStream
+: Endpoint<EventStreamRequest>
 {
-    public class EventStream
-  : Endpoint<EventStreamRequest>
+    private readonly IEventChannelManager channelManager;
+
+    public EventStream(IEventChannelManager channelManager)
     {
-        private readonly IClusterClient client;
-        private readonly Dictionary<string, Channel<object>> eventChannels;
+        this.channelManager = channelManager;
+    }
 
-        public EventStream(IClusterClient client)
+    public override void Configure()
+    {
+        Get("/api/guide/{GuideId}/event-stream");
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(EventStreamRequest req, CancellationToken ct)
+    {
+        var reader = channelManager.GetReader(req.GuideId);
+
+        try
         {
-            this.client = client;
-            eventChannels = CreateChannels();
+            await Task.WhenAll(
+            [
+                SendEventStreamAsync<ScavengerPositionChangedEvent, ScavengerMovedResponse>(reader, OnScavengerPositionChanged, ct),
+                SendEventStreamAsync<ScavengerDirectionChangedEvent, ScavengerChangedDirectionResponse>(reader, OnScavengerDirectionChanged, ct),
+                SendEventStreamAsync<EggFoundEvent, EggFoundResponse>(reader, (e) => OnEggFound(), ct),
+            ]);
         }
-
-        private Dictionary<string, Channel<object>> CreateChannels()
+        finally
         {
-            return new Dictionary<string, Channel<object>>
+            channelManager.RemoveChannel(req.GuideId);
+        }
+    }
+
+    private EggFoundResponse OnEggFound()
+    {
+        return new EggFoundResponse();
+    }
+
+    private ScavengerChangedDirectionResponse OnScavengerDirectionChanged(ScavengerDirectionChangedEvent @event)
+    {
+        return new ScavengerChangedDirectionResponse { Direction = @event.Direction };
+    }
+
+    private static ScavengerMovedResponse OnScavengerPositionChanged(ScavengerPositionChangedEvent @event)
+    {
+        return new ScavengerMovedResponse { Position = @event.Position };
+    }
+
+    private async Task SendEventStreamAsync<TEvent, TResponse>(ChannelReader<IDomainEvent> reader, Func<TEvent, TResponse> map, CancellationToken ct)
+        where TEvent : IDomainEvent
+        where TResponse : class
+    {
+        await SendEventStreamAsync(typeof(TEvent).Name, FilterEventsAsync(reader, map, ct), ct);
+    }
+
+    private static async IAsyncEnumerable<object> FilterEventsAsync<TEvent, TResponse>(ChannelReader<IDomainEvent> reader, Func<TEvent, TResponse> map, [EnumeratorCancellation] CancellationToken ct) where TResponse : class
+    {
+        await foreach (var item in reader.ReadAllAsync(ct))
+        {
+            if (item is TEvent evt)
             {
-                { EventType.ScavengerMoved, Channel.CreateUnbounded<object>() },
-                { EventType.ScavengerChangedDirection, Channel.CreateUnbounded<object>() },
-                { EventType.EggFound, Channel.CreateUnbounded<object>() }
-            };
-        }
-
-        public override void Configure()
-        {
-            Get("/api/guide/{GuideId}/event-stream");
-            AllowAnonymous();
-        }
-
-        public override async Task HandleAsync(EventStreamRequest req, CancellationToken ct)
-        {
-            var guide = client.GetGrain<IGuideGrain>(req.GuideId);
-            var gameId = await guide.GetGameId();
-            var game = client.GetGrain<IGameGrain>(gameId);
-            var scavengerId = await game.GetScavengerId();
-            
-            var streamProvider = client.GetStreamProvider("SMSProvider");
-
-            var scavengerStream = streamProvider.GetStream<IDomainEvent>(StreamId.Create("Scavenger", scavengerId));
-            await scavengerStream.SubscribeAsync(OnNextAsync);
-            
-            var gameStream = streamProvider.GetStream<IDomainEvent>(StreamId.Create("Game", gameId));
-            await gameStream.SubscribeAsync(OnNextAsync);
-
-            await Task.WhenAll(eventChannels.Select(kvp => SendEventStreamAsync(kvp.Key, kvp.Value.Reader.ReadAllAsync(ct), ct)));
-        }
-
-        public async Task ScavengerMoved(Position position)
-        {
-            await WriteEventChannelAsync(EventType.ScavengerMoved, new ScavengerMovedResponse
-            {
-                Position = position
-            });
-        }
-
-        public async Task ScavengerChangedDirection(double direction)
-        {
-            await WriteEventChannelAsync(EventType.ScavengerChangedDirection, new ScavengerChangedDirectionResponse
-            {
-                Direction = direction
-            });
-        }
-
-        public async Task EggFound()
-        {
-            await WriteEventChannelAsync(EventType.EggFound, new EggFoundResponse());
-        }
-
-        private async Task WriteEventChannelAsync(string eventName, object item)
-        {
-            var channel = eventChannels[eventName];
-            await channel.Writer.WriteAsync(item);
+                yield return map(evt);
+            }
         }
 
         public async Task OnNextAsync(IDomainEvent item, StreamSequenceToken? token = null)

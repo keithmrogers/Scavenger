@@ -1,67 +1,48 @@
-﻿using FastEndpoints;
-using Orleans;
-using Orleans.Runtime;
-using Orleans.Streams;
-using Scavenger.Server.Domain;
-using Scavenger.Server.GrainInterfaces;
+using Dapr.Actors.Client;
+using Dapr.Actors;
+using FastEndpoints;
+using Scavenger.Core;
+using Scavenger.Interfaces;
 
-namespace Scavenger.Api.Scavengers
+namespace Scavenger.Api.Scavengers;
+
+public class Start(IActorProxyFactory actorProxyFactory, IEventChannelManager channelManager)
+: EndpointWithoutRequest<StartResponse>
 {
-    public class Start
-  : EndpointWithoutRequest
+    private readonly IActorProxyFactory actorProxyFactory = actorProxyFactory;
+    private readonly IEventChannelManager channelManager = channelManager;
+
+    public override void Configure()
     {
-        private readonly IClusterClient client;
-        private StartResponse? response;
+        Get("/api/scavenger/start");
+        AllowAnonymous();
+    }
 
-        public Start(IClusterClient client)
+    public override async Task HandleAsync(CancellationToken ct)
+    {
+        var lobbyManagerActor = actorProxyFactory.CreateActorProxy<ILobbyManagerActor>(new ActorId("0"), "LobbyManagerActor");
+        var lobby = await lobbyManagerActor.ScavengerJoinLobby();
+        var scavengerId = lobby.ScavengerId!.Value;
+
+        if (lobby.IsReady)
         {
-            this.client = client;
+            await SendAsync(new StartResponse { ScavengerId = scavengerId });
+            return;
         }
 
-        public override void Configure()
+        //if it's not ready, wait for the signal
+        var reader = channelManager.GetReader(scavengerId);
+        try
         {
-            Get("/api/scavenger/start");
-            AllowAnonymous();
-        }
-
-        public override async Task HandleAsync(CancellationToken ct)
-        {
-            var lobbyManagerGrain = client.GetGrain<ILobbyManagerGrain>(0);
-            var lobby = await lobbyManagerGrain.ScavengerJoinLobby();
-
-            if (lobby.IsReady)
+            var item = await reader.ReadAsync(ct);
+            if (item is GameStartedEvent)
             {
-                response = new StartResponse { ScavengerId = lobby.ScavengerId!.Value };
-            }
-            else
-            {
-                var streamProvider = client.GetStreamProvider("SMSProvider");
-                var stream = streamProvider.GetStream<IDomainEvent>(StreamId.Create("Lobby", lobby.LobbyId));
-                await stream.SubscribeAsync(OnNextAsync);
-            }
-
-            while (!ct.IsCancellationRequested)//wait for the response
-            {
-                if (response != null)
-                {
-                    await SendAsync(response);
-                    break;
-                }
+                await SendAsync(new StartResponse { ScavengerId = scavengerId });
             }
         }
-
-        private async Task OnNextAsync(IDomainEvent item, StreamSequenceToken? token = null)
+        finally
         {
-            if (item is LobbyReadyEvent e)
-            {
-                await LobbyReady(e);
-            }
-        }
-
-        public Task LobbyReady(LobbyReadyEvent e)
-        {
-            response = new StartResponse { ScavengerId = e.ScavengerId };
-            return Task.CompletedTask;
+            channelManager.RemoveChannel(scavengerId);
         }
     }
 }

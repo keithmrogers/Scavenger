@@ -1,61 +1,48 @@
-﻿using FastEndpoints;
-using Orleans.Runtime;
-using Orleans.Streams;
-using Scavenger.Server.Domain;
-using Scavenger.Server.GrainInterfaces;
+using Dapr.Actors;
+using Dapr.Actors.Client;
+using FastEndpoints;
+using Scavenger.Core;
+using Scavenger.Interfaces;
 
-namespace Scavenger.Api.Guides
+namespace Scavenger.Api.Guides;
+
+public class Start(IActorProxyFactory actorProxyFactory, IEventChannelManager channelManager)
+: EndpointWithoutRequest<StartResponse>
 {
-    public class Start(IClusterClient client)
-    : EndpointWithoutRequest<StartResponse>
+    private readonly IActorProxyFactory actorProxyFactory = actorProxyFactory;
+    private readonly IEventChannelManager channelManager = channelManager;
+
+    public override void Configure()
     {
-        private readonly IClusterClient client = client;
-        private StartResponse? response;
+        Get("/api/guide/start");
+        AllowAnonymous();
+    }
 
-        public override void Configure()
+    public override async Task HandleAsync(CancellationToken ct)
+    {
+        var lobbyManagerActor = actorProxyFactory.CreateActorProxy<ILobbyManagerActor>(new ActorId("0"), "LobbyManagerActor");
+        var lobby = await lobbyManagerActor.GuideJoinLobby();
+        var guideId = lobby.GuideId!.Value;
+
+        if (lobby.IsReady)
         {
-            Get("/api/guide/start");
-            AllowAnonymous();
+            await SendAsync(new StartResponse { GuideId = guideId });
+            return;
         }
 
-        public override async Task HandleAsync(CancellationToken ct)
+        //if it's not ready, wait for the signal
+        var reader = channelManager.GetReader(guideId);
+        try
         {
-            var lobbyManagerGrain = client.GetGrain<ILobbyManagerGrain>(0);
-            var lobby = await lobbyManagerGrain.GuideJoinLobby();
-
-            if (lobby.IsReady)
+            var item = await reader.ReadAsync(ct);
+            if (item is GameStartedEvent)
             {
-                response = new StartResponse { GuideId = lobby.GuideId!.Value };
-            }
-            else
-            {
-                var streamProvider = client.GetStreamProvider("SMSProvider");
-                var stream = streamProvider.GetStream<IDomainEvent>(StreamId.Create("Lobby", lobby.LobbyId));
-                await stream.SubscribeAsync(OnNextAsync);
-            }
-
-            while (!ct.IsCancellationRequested)//wait for the response
-            {
-                if (response != null)
-                {
-                    await SendAsync(response);
-                    break;
-                }
+                await SendAsync(new StartResponse { GuideId = guideId });
             }
         }
-
-        private async Task OnNextAsync(IDomainEvent item, StreamSequenceToken? token = null)
+        finally
         {
-            if (item is LobbyReadyEvent e)
-            {
-                await LobbyReady(e);
-            }
-        }
-
-        public Task LobbyReady(LobbyReadyEvent e)
-        {
-            response = new StartResponse { GuideId = e.GuideId };
-            return Task.CompletedTask;
+            channelManager.RemoveChannel(guideId);
         }
     }
 }

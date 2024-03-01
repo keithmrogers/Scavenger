@@ -1,12 +1,9 @@
-﻿
-using FastEndpoints;
-using Scavenger.Server.Domain;
+﻿using Scavenger.Core;
 
-namespace Scavenger.Api.Scavengers
+namespace Scavenger.Api.Scavengers;
+
+public class MoveRequest
 {
-    public class MoveRequest
-    {
-        public Guid ScavengerId { get; set; }
-        public Position? Position { get; set; }
-    }
+    public Guid ScavengerId { get; set; }
+    public Position? Position { get; set; }
 }
