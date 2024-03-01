@@ -4,22 +4,22 @@ on:
   workflow_dispatch:
   push:
     branches:
-    - main
+    - master
 
     paths:
-    - ScavengerServer/Scavenger.Api/**
-    - .github/workflows/scavenger-api.yml
+    - ScavengerServer/Scavenger.Actors/**
+    - .github/workflows/scavenger-actors.yml
   
   pull_request:
     branches:
-    - main
+    - master
 
     paths:
-    - ScavengerServer/Scavenger.Api/**
-    - .github/workflows/scavenger-api.yml
+    - ScavengerServer/Scavenger.Actors/**
+    - .github/workflows/scavenger-actors.yml
 env:
-  SERVICE: scavenger-api
-  IMAGE: scavenger.api
+  SERVICE: scavenger-actors
+  IMAGE: scavenger.actors
   DOTNET_VERSION: 8.0.x
   USE_DOTNET_PREVIEW: true
 
