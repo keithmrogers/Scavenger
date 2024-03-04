@@ -7,7 +7,6 @@
     <ProjectGuid>c0e70176-1124-42a8-b617-bcf2b0ecea0f</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}</DockerServiceUrl>
-    <DockerServiceName>scavenger.actorservice</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">

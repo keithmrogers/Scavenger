@@ -33,8 +33,8 @@ services:
     environment:
       - APP_API_TOKEN=${APP_API_TOKEN}
     volumes:
-      - "./dapr/components/:/components"
-      - "./dapr/configuration/:/configuration"
+      - "./components/:/components"
+      - "./configuration/:/configuration"
 
   scavenger-api:
     environment:
@@ -58,8 +58,8 @@ services:
     environment:
       - APP_API_TOKEN=${APP_API_TOKEN}
     volumes:
-      - "./dapr/components/:/components"
-      - "./dapr/configuration/:/configuration"
+      - "./components/:/components"
+      - "./configuration/:/configuration"
 
   dapr-placement:
     command: ["./placement", "-port", "50000", "-log-level", "debug"]

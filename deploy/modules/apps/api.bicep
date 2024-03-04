@@ -6,6 +6,8 @@ param managedIdentityId string
 
 param acrLoginServer string
 
+param appInsightsConnectionString string
+
 resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'scavenger-api'
   location: location
@@ -26,6 +28,10 @@ resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
             {
               name: 'ASPNETCORE_HTTP_PORTS'
               value: '8080'
+            }
+            {
+              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+              value: appInsightsConnectionString
             }
           ]      
         }

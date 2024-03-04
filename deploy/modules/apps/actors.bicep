@@ -6,6 +6,8 @@ param managedIdentityId string
 
 param acrLoginServer string
 
+param appInsightsConnectionString string
+
 resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'scavenger-actors'
   location: location
@@ -22,6 +24,12 @@ resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
         {
           name: 'scavenger-actors'
           image: '${acrLoginServer}/scavenger.actors:latest'
+          env: [
+            {
+              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+              value: appInsightsConnectionString
+            }
+          ]      
         }
       ]
       scale: {

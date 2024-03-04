@@ -84,6 +84,7 @@ module scavengerActors 'modules/apps/actors.bicep' = {
     containerAppsEnvironmentId: containerAppsEnvironment.outputs.id
     managedIdentityId: managedIdentity.outputs.identityId
     acrLoginServer: acr.outputs.acrLoginServer
+    appInsightsConnectionString: containerAppsEnvironment.outputs.appInsightsConnectionString
   }
 }
 
@@ -97,5 +98,6 @@ module scavengerApi 'modules/apps/api.bicep' = {
     containerAppsEnvironmentId: containerAppsEnvironment.outputs.id
     managedIdentityId: managedIdentity.outputs.identityId
     acrLoginServer: acr.outputs.acrLoginServer
+    appInsightsConnectionString: containerAppsEnvironment.outputs.appInsightsConnectionString
   }
 }
