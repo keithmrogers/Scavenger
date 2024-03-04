@@ -18,6 +18,7 @@ module acr 'modules/infra/container-registry.bicep' = {
   params: {
     location: location
     uniqueSeed: uniqueSeed
+    managedIdentityObjectId: managedIdentity.outputs.identityObjectId
   }
 }
 
@@ -82,6 +83,7 @@ module scavengerActors 'modules/apps/actors.bicep' = {
     location: location
     containerAppsEnvironmentId: containerAppsEnvironment.outputs.id
     managedIdentityId: managedIdentity.outputs.identityId
+    acrLoginServer: acr.outputs.acrLoginServer
   }
 }
 
@@ -94,5 +96,6 @@ module scavengerApi 'modules/apps/api.bicep' = {
     location: location
     containerAppsEnvironmentId: containerAppsEnvironment.outputs.id
     managedIdentityId: managedIdentity.outputs.identityId
+    acrLoginServer: acr.outputs.acrLoginServer
   }
 }

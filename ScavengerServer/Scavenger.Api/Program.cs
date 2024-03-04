@@ -5,6 +5,7 @@ using Google.Api;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Scavenger.Api;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -22,6 +23,12 @@ builder.Services.SwaggerDocument(o =>
 
 builder.Services.AddActors((options) => { });
 builder.Services.AddSingleton<IEventChannelManager, EventChannelManager>();
+
+if (!builder.Environment.IsDevelopment())
+{
+    // Add OpenTelemetry and configure it to use Azure Monitor.
+    builder.Services.AddOpenTelemetry().UseAzureMonitor();
+}
 
 var app = builder.Build();
 

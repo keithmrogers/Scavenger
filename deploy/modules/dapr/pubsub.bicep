@@ -25,7 +25,7 @@ resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2022-03-01'
       ]
       scopes: [
         'scavenger-api'
-        'actors'
+        'scavenger-actors'
       ]
     }
   }

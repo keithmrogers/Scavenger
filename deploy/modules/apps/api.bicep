@@ -4,6 +4,8 @@ param containerAppsEnvironmentId string
 
 param managedIdentityId string
 
+param acrLoginServer string
+
 resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'scavenger-api'
   location: location
@@ -19,11 +21,11 @@ resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
       containers: [
         {
           name: 'scavenger-api'
-          image: 'scavenger/scavenger.api:latest'
+          image: '${acrLoginServer}/scavenger.api:latest'
           env: [
             {
-              name: 'ASPNETCORE_URLS'
-              value: 'http://0.0.0.0:80'
+              name: 'ASPNETCORE_HTTP_PORTS'
+              value: '8080'
             }
           ]      
         }
@@ -39,12 +41,18 @@ resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
       dapr: {
         enabled: true
         appId: 'scavenger-api'
-        appPort: 80
+        appPort: 8080
       }
       ingress: {
         external: true
-        targetPort: 80
+        targetPort: 8080
       }
+      registries: [
+        {
+          server: acrLoginServer
+          identity:  managedIdentityId
+        }
+      ]
     }
   }
 }
