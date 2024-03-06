@@ -11,7 +11,7 @@ namespace Scavenger.Actors
             foreach (object domainEvent in entity.DomainEvents)
             {
                 Console.WriteLine($"Publishing cloudevent.type: {domainEvent.GetType().Name}");
-                await client.PublishEventAsync("pubsub", topicName, domainEvent, metadata: new Dictionary<string, string>() { { "cloudevent.type", domainEvent.GetType().Name } });
+                await client.PublishEventAsync("scavenger-pubsub", topicName, domainEvent, metadata: new Dictionary<string, string>() { { "cloudevent.type", domainEvent.GetType().Name } });
             }
         }
     }

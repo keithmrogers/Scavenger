@@ -12,7 +12,7 @@ namespace Scavenger.Api.Events
         public override void Configure()
         {
             Post("/events/game-started");
-            Options(rb => rb.WithTopic("pubsub", "games", nameof(GameStartedEvent),1));
+            Options(rb => rb.WithTopic("scavenger-pubsub", "games", nameof(GameStartedEvent),1));
         }
 
         public override async Task HandleAsync(GameStartedEvent req, CancellationToken ct)

@@ -13,7 +13,7 @@ namespace Scavenger.Api.Events
         public override void Configure()
         {
             Post("/events/scavenger-changed-direction");
-            Options(rb => rb.WithTopic("pubsub", "scavengers", nameof(ScavengerDirectionChangedEvent),1));
+            Options(rb => rb.WithTopic("scavenger-pubsub", "scavengers", nameof(ScavengerDirectionChangedEvent),1));
         }
 
         public override async Task HandleAsync(ScavengerDirectionChangedEvent req, CancellationToken ct)

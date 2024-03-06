@@ -14,7 +14,7 @@ public class EggFound(IActorProxyFactory actorProxyFactory, IEventChannelManager
     public override void Configure()
     {
         Post("/events/egg-found");
-        Options(rb => rb.WithTopic("pubsub", "games", nameof(EggFoundEvent),2));
+        Options(rb => rb.WithTopic("scavenger-pubsub", "games", nameof(EggFoundEvent),2));
     }
 
     public override async Task HandleAsync(EggFoundEvent req, CancellationToken ct)

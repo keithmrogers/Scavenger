@@ -26,10 +26,6 @@ resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
           image: '${acrLoginServer}/scavenger.api:latest'
           env: [
             {
-              name: 'ASPNETCORE_HTTP_PORTS'
-              value: '8080'
-            }
-            {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
               value: appInsightsConnectionString
             }

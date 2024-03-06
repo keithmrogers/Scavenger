@@ -14,7 +14,7 @@ namespace Scavenger.Api.Events
         public override void Configure()
         {
             Post("/events/scavenger-moved");
-            Options(rb => rb.WithTopic("pubsub", "scavengers", nameof(ScavengerPositionChangedEvent),2));
+            Options(rb => rb.WithTopic("scavenger-pubsub", "scavengers", nameof(ScavengerPositionChangedEvent),2));
         }
 
         public override async Task HandleAsync(ScavengerPositionChangedEvent req, CancellationToken ct)

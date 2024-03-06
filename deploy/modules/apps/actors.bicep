@@ -43,8 +43,11 @@ resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
       dapr: {
         enabled: true
         appId: 'scavenger-actors'
-        appPort: 80
-        appProtocol: 'grpc'
+        appPort: 8080
+      }
+      ingress: {
+        external: true
+        targetPort: 8080
       }
       registries: [
         {
