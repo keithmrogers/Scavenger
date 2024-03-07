@@ -7,7 +7,7 @@ on:
     - master
 
     paths:
-    - ScavengerServer/Scavenger.Actors/**
+    - src/Server/Scavenger.Actors/**
     - .github/workflows/scavenger-actors.yml
   
   pull_request:
@@ -15,7 +15,7 @@ on:
     - master
 
     paths:
-    - ScavengerServer/Scavenger.Actors/**
+    - src/Server/Scavenger.Actors/**
     - .github/workflows/scavenger-actors.yml
 env:
   SERVICE: scavenger-actors
@@ -42,7 +42,7 @@ jobs:
 
     - name: Compose build ${{ env.SERVICE }}
       run: sudo -E docker-compose build ${{ env.SERVICE }}
-      working-directory: ./ScavengerServer
+      working-directory: ./src/Server
       shell: bash
       env:
         TAG: ${{ env.BRANCH }}
@@ -77,7 +77,7 @@ jobs:
 
     - name: Compose build ${{ env.SERVICE }}
       run: sudo -E docker-compose build ${{ env.SERVICE }}
-      working-directory: ./ScavengerServer
+      working-directory: ./src/Server
       shell: bash
       env:
         REGISTRY: ${{ env.ACR_LOGIN_SERVER }}
@@ -93,7 +93,7 @@ jobs:
   
     - name: Compose push ${{ env.SERVICE }}
       run: sudo -E docker-compose push ${{ env.SERVICE }}
-      working-directory: ./ScavengerServer
+      working-directory: ./src/Server
       shell: bash
       env:
         REGISTRY: ${{ env.ACR_LOGIN_SERVER }}
